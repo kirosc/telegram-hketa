@@ -1,0 +1,16 @@
+{
+    "version": 2,
+    "name": "tg-hkbus-eta",
+    "env": {
+        "API_KEY": "@api_key"
+    },
+    "builds": [
+        {
+            "src": "*.js",
+            "use": "@now/node"
+        }
+    ],
+    "routes": [
+      { "src": "/message", "dest": "/index.js" }
+    ]
+}  
