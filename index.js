@@ -5,30 +5,45 @@ const axios = require('axios')
 const Telegraf = require('telegraf')
 const Extra = require('telegraf/extra')
 const Markup = require('telegraf/markup')
+const session = require('telegraf/session')
+const Stage = require('telegraf/stage')
+const WizardScene = require('telegraf/scenes/wizard')
 
 const TOKEN = process.env.API_KEY
 
+const wizard = new WizardScene('eta',
+  ctx => {
+    console.log('1');
+
+    ctx.reply(
+      '請選擇巴士公司',
+      Markup.inlineKeyboard([
+        [
+          { text: '城巴', callback_data: 'CTB' },
+          { text: '新巴', callback_data: 'NWFB' }
+        ]
+      ])
+        .oneTime()
+        .resize()
+        .extra()
+    )
+    return ctx.wizard.next()
+  },
+  ctx => {
+    console.log('2');
+    const companyID = ctx.update.callback_query.data
+    ctx.reply(`You hit ${companyID}`)
+    return ctx.scene.leave();
+  }
+)
+
 const bot = new Telegraf(TOKEN)
+const stage = new Stage([wizard], { default: 'eta' })
 
-bot.on('text', ({reply}) => {
-  return reply(
-    '請選擇巴士公司',
-    Markup.inlineKeyboard([
-      [
-        { text: '城巴', callback_data: 'NWFB' },
-        { text: '新巴', callback_data: 'CTB' }
-      ]
-    ])
-      .oneTime()
-      .resize()
-      .extra()
-  )
-})
+bot.use(session())
+bot.use(stage.middleware())
 
-bot.on('callback_query', ({update, reply}) => {
-  const data = update.callback_query.data
-  return reply(`You hit ${data}`)
-})
+bot.start(ctx => ctx.scene.enter('eta'))
 
 const app = express()
 
