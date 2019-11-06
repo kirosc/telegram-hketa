@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "prod": "now --prod"
+    "prod": "now --prod",
+    "dev": "now dev"
   },
   "keywords": [
     "nodejs"

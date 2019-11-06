@@ -1,4 +1,6 @@
 require('dotenv').config()
+require('./data/routes.json')
+const fs = require('fs')
 const express = require('express')
 const bodyParser = require('body-parser')
 const axios = require('axios')
@@ -9,41 +11,39 @@ const session = require('telegraf/session')
 const Stage = require('telegraf/stage')
 const WizardScene = require('telegraf/scenes/wizard')
 
+let routes = readRoutes()
+
 const TOKEN = process.env.API_KEY
 
 const wizard = new WizardScene('eta',
+  // ctx => {
+  //   ctx.reply(
+  //     '請選擇巴士公司',
+  //     Markup.inlineKeyboard([
+  //       [
+  //         { text: '城巴', callback_data: 'CTB' },
+  //         { text: '新巴', callback_data: 'NWFB' }
+  //       ]
+  //     ])
+  //       .oneTime()
+  //       .resize()
+  //       .extra()
+  //   )
+  //   return ctx.wizard.next()
+  // },
   ctx => {
-    console.log('1');
-
-    ctx.reply(
-      '請選擇巴士公司',
-      Markup.inlineKeyboard([
-        [
-          { text: '城巴', callback_data: 'CTB' },
-          { text: '新巴', callback_data: 'NWFB' }
-        ]
-      ])
-        .oneTime()
-        .resize()
-        .extra()
-    )
-    return ctx.wizard.next()
-  },
-  ctx => {
-    console.log('2');
-    
-    const companyID = ctx.update.callback_query.data
-    ctx.reply('請輸入路線號碼')
+    ctx.reply('請輸入路線號碼🔢')
     return ctx.wizard.next();
   },
   ctx => {
     const route = ctx.update.message.text
-    console.log(route);
+
+    const company = isValidRoute(route)
     
-    if (/[A-Za-z0-9]*[0-9][A-Za-z0-9]*/.test(route)) {
-      ctx.reply('Valid route')
+    if (company) {
+      ctx.reply(`此為${company}公司路線✔`)
     } else {
-      ctx.reply('Invalid route')
+      ctx.reply('無此路線❌')
     }
   }
 )
@@ -64,3 +64,25 @@ app.use(bot.webhookCallback('/message'))
 app.listen(3000, function() {
   console.log('Telegram app listening on port 3000!')
 })
+
+// Get the routes data from Json file
+function readRoutes() {
+  try {
+    const json = fs.readFileSync('./data/routes.json', 'utf8')
+    return JSON.parse(json)
+  } catch (err) {
+    console.log("File read failed:", err)
+    return
+  }
+}
+
+// Check if the route exists can return the company code
+function isValidRoute(route) {
+  route = route.toUpperCase()
+  if(/[A-Za-z0-9]*[0-9][A-Za-z0-9]*/.test(route)) {
+    for (company in routes){
+      if (routes[company].includes(route))
+        return company
+    }
+  }
+}
