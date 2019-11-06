@@ -31,9 +31,20 @@ const wizard = new WizardScene('eta',
   },
   ctx => {
     console.log('2');
+    
     const companyID = ctx.update.callback_query.data
-    ctx.reply(`You hit ${companyID}`)
-    return ctx.scene.leave();
+    ctx.reply('請輸入路線號碼')
+    return ctx.wizard.next();
+  },
+  ctx => {
+    const route = ctx.update.message.text
+    console.log(route);
+    
+    if (/[A-Za-z0-9]*[0-9][A-Za-z0-9]*/.test(route)) {
+      ctx.reply('Valid route')
+    } else {
+      ctx.reply('Invalid route')
+    }
   }
 )
 
