@@ -37,8 +37,8 @@ const wizard = new WizardScene('eta',
           }
           let orig = routeInfo.orig_tc
           let dest = routeInfo.dest_tc
-          let inboundCallback= JSON.stringify({ ...callback, dir: 'inbound' })
-          let outboundCallback= JSON.stringify({ ...callback, dir: 'outbound' })
+          let inboundCallback = JSON.stringify({ ...callback, dir: 'inbound' })
+          let outboundCallback = JSON.stringify({ ...callback, dir: 'outbound' })
 
           ctx.reply(
             '請選擇乘搭方向↔',
@@ -65,8 +65,27 @@ const wizard = new WizardScene('eta',
     }
   },
   async ctx => {
-    let dir = ctx.update.callback_query.data
-    console.log(dir);
+    if (!ctx.update.hasOwnProperty('callback_query')) {
+      console.log('No callback data');
+      return
+    }
+
+    let { company, route, dir } = JSON.parse(ctx.update.callback_query.data)
+    let ids = await getRouteStop(company, route, dir)
+    let names = await getStopsName(ids)
+    let keyboard = genKeyboard(company, route, dir, names, ids)
+
+    ctx.reply(
+      '請選擇巴士站🚏',
+      Markup.inlineKeyboard(keyboard)
+        .oneTime()
+        .resize()
+        .extra()
+    )
+    return ctx.wizard.next();
+  },
+  async ctx => {
+    return ctx.scene.leave();
   }
 )
 
@@ -109,14 +128,84 @@ function isValidRoute(route) {
   }
 }
 
+// Get the route information, like origin and destination
 async function getRoute(company, route) {
   let url = 'https://rt.data.gov.hk/v1/transport/citybus-nwfb/route'
   let res = await axios.get(url + `/${company}/${route}`)
   return res.data.data
 }
 
+// Get the list of stops of a direction of route in ID
 async function getRouteStop(company, route, dir) {
   let url = 'https://rt.data.gov.hk/v1/transport/citybus-nwfb/route-stop'
   let res = await axios.get(url + `/${company}/${route}/${dir}`)
-  return res.data.data
+  let stops = []
+
+  for (datum of res.data.data)
+    stops.push(datum.stop)
+
+  return stops
+}
+
+// Get the stop name of a list of stop ID
+async function getStopsName(stopsID) {
+  let url = 'https://rt.data.gov.hk/v1/transport/citybus-nwfb/stop'
+  let tasks = []
+  let names = []
+
+  for (stopID of stopsID) {
+    let task = axios.get(url + `/${stopID}`)
+    tasks.push(task)
+  }
+
+  let res = await Promise.all(tasks)
+
+  for (r of res) {
+    names.push(r.data.data.name_tc)
+  }
+
+  return names
+}
+
+async function getETA(company, route, stop) {
+  let url = 'https://rt.data.gov.hk/v1/transport/citybus-nwfb/eta'
+  let res = await axios.get(url + `/${company}/${stop}/${route}`)
+  let data = res.data.data
+  let etas = []
+
+  for (datum of data) {
+    const options = { hour12: 'true' }
+    const eta = new Date(datum.eta).toLocaleTimeString('en-GB', options).split(' ')[0]
+    etas.push(eta)
+  }
+  return etas
+}
+
+function genKeyboard(company, route, dir, names, ids) {
+  let keyboard = []
+  let lastStop
+
+  if (names.length % 2 !== 0)
+      lastStop = names.pop()
+
+    for (let i = 0; i < names.length; i += 2) {
+      const callback = {
+        company,
+        route,
+        dir
+      }
+      const callback1 = JSON.stringify({ ...callback, stop: ids[i] })
+      const callback2 = JSON.stringify({ ...callback, stop: ids[i+1] })
+      // Two buttons per row
+      const button = [
+        {text: names[i], callback_data: callback1},
+        {text: names[i+1], callback_data: callback2}
+      ]
+      keyboard.push(button)
+    }
+
+    if (lastStop)
+      keyboard.push([{ text: lastStop, callback_data: 'test' }])
+
+    return keyboard
 }
