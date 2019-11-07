@@ -35,13 +35,24 @@ const wizard = new WizardScene('eta',
     ctx.reply('請輸入路線號碼🔢')
     return ctx.wizard.next();
   },
-  ctx => {
+  async ctx => {
     const route = ctx.update.message.text
 
     const company = isValidRoute(route)
     
     if (company) {
-      ctx.reply(`此為${company}公司路線✔`)
+      if (company == 'CTB' || company == 'NWFB') {
+        let [inbound, outbound] = await Promise.all([getETA(company, route, 'inbound'), getETA(company, route, 'outbound')])
+        
+        if (inbound.length) {
+        }
+        else {
+          // Circular route
+        }
+        ctx.reply(company)
+      } else if (company == 'NLB') {
+        
+      }
     } else {
       ctx.reply('無此路線❌')
     }
@@ -85,4 +96,18 @@ function isValidRoute(route) {
         return company
     }
   }
+}
+
+async function getRoute(company, route) {
+
+  let url = 'https://rt.data.gov.hk/v1/transport/citybus-nwfb/route'
+  let res = await axios.get(url + `/${company}/${route}`)
+  return res.data.data
+}
+
+async function getETA(company, route, dir) {
+
+  let url = 'https://rt.data.gov.hk/v1/transport/citybus-nwfb/route-stop'
+  let res = await axios.get(url + `/${company}/${route}/${dir}`)
+  return res.data.data
 }

@@ -44,8 +44,6 @@ let promise2 = axios
       }
     })
 
-
-
 Promise.all([promise1, promise2, promise3]).then(() => {
   const routes = {
     'CTB': Array.from(CTBRoutes),
