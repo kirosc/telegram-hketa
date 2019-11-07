@@ -27,7 +27,7 @@ const wizard = new WizardScene('eta',
 
     if (company) {
       if (company == 'CTB' || company == 'NWFB') {
-        let [inbound, outbound] = await Promise.all([getETA(company, route, 'inbound'), getETA(company, route, 'outbound')])
+        let [inbound, outbound] = await Promise.all([getRouteStop(company, route, 'inbound'), getRouteStop(company, route, 'outbound')])
 
         if (inbound.length) {
           let routeInfo = await getRoute(company, route)
@@ -115,7 +115,7 @@ async function getRoute(company, route) {
   return res.data.data
 }
 
-async function getETA(company, route, dir) {
+async function getRouteStop(company, route, dir) {
   let url = 'https://rt.data.gov.hk/v1/transport/citybus-nwfb/route-stop'
   let res = await axios.get(url + `/${company}/${route}/${dir}`)
   return res.data.data
