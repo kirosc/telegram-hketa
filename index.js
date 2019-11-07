@@ -85,6 +85,24 @@ const wizard = new WizardScene('eta',
     return ctx.wizard.next();
   },
   async ctx => {
+    if (!ctx.update.hasOwnProperty('callback_query')) {
+      console.log('No callback data');
+      return
+    }
+
+    let { company, route, dir, stop } = JSON.parse(ctx.update.callback_query.data)
+    let etas = await getETA(company, route, stop)
+
+    if (etas.length === 0) {
+      ctx.reply('沒有到站時間預報⛔')
+    } else {
+      let str = '到站時間如下⌚'
+      for (eta of etas) {
+        str += `\n${eta}`
+      }
+      ctx.reply(str)
+    }
+
     return ctx.scene.leave();
   }
 )
@@ -174,8 +192,8 @@ async function getETA(company, route, stop) {
   let etas = []
 
   for (datum of data) {
-    const options = { hour12: 'true' }
-    const eta = new Date(datum.eta).toLocaleTimeString('en-GB', options).split(' ')[0]
+    const options = { hour12: 'true', timeZone: 'Asia/Hong_Kong' }
+    const eta = new Date(datum.eta).toLocaleTimeString('en-HK', options).split(' ')[0]
     etas.push(eta)
   }
   return etas
@@ -186,26 +204,26 @@ function genKeyboard(company, route, dir, names, ids) {
   let lastStop
 
   if (names.length % 2 !== 0)
-      lastStop = names.pop()
+    lastStop = names.pop()
 
-    for (let i = 0; i < names.length; i += 2) {
-      const callback = {
-        company,
-        route,
-        dir
-      }
-      const callback1 = JSON.stringify({ ...callback, stop: ids[i] })
-      const callback2 = JSON.stringify({ ...callback, stop: ids[i+1] })
-      // Two buttons per row
-      const button = [
-        {text: names[i], callback_data: callback1},
-        {text: names[i+1], callback_data: callback2}
-      ]
-      keyboard.push(button)
+  for (let i = 0; i < names.length; i += 2) {
+    const callback = {
+      company,
+      route,
+      dir
     }
+    const callback1 = JSON.stringify({ ...callback, stop: ids[i] })
+    const callback2 = JSON.stringify({ ...callback, stop: ids[i + 1] })
+    // Two buttons per row
+    const button = [
+      { text: names[i], callback_data: callback1 },
+      { text: names[i + 1], callback_data: callback2 }
+    ]
+    keyboard.push(button)
+  }
 
-    if (lastStop)
-      keyboard.push([{ text: lastStop, callback_data: 'test' }])
+  if (lastStop)
+    keyboard.push([{ text: lastStop, callback_data: 'test' }])
 
-    return keyboard
+  return keyboard
 }
