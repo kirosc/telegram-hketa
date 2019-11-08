@@ -55,7 +55,18 @@ const wizard = new WizardScene('eta',
           return ctx.wizard.next()
         }
         else {
-          // Circular route
+          let ids = await getRouteStop(company, route, 'outbound')
+          let names = await getStopsName(ids)
+          let keyboard = genKeyboard(company, route, 'outbound', names, ids)
+
+          ctx.reply(
+            '請選擇巴士站🚏',
+            Markup.inlineKeyboard(keyboard)
+              .oneTime()
+              .resize()
+              .extra()
+          )
+          return ctx.wizard.selectStep(2)
         }
       } else if (company == 'NLB') {
         // TODO: NLB Bus
@@ -222,8 +233,10 @@ function genKeyboard(company, route, dir, names, ids) {
     keyboard.push(button)
   }
 
-  if (lastStop)
-    keyboard.push([{ text: lastStop, callback_data: 'test' }])
+  if (lastStop) {
+    const callback3 = JSON.stringify({ company, route, dir, stop: ids.pop() })
+    keyboard.push([{ text: lastStop, callback_data: callback3 }])
+  }
 
   return keyboard
 }
