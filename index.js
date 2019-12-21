@@ -15,111 +15,12 @@ let routes = readRoutes()
 
 const TOKEN = process.env.API_KEY
 
-const wizard = new WizardScene('eta',
-  ctx => {
-    ctx.reply('請輸入路線號碼🔢')
-    return ctx.wizard.next();
-  },
-  async ctx => {
-    const route = ctx.update.message.text
+const scene = new Telegraf.BaseScene('eta');
 
-    const company = isValidRoute(route)
-
-    if (company) {
-      if (company == 'CTB' || company == 'NWFB') {
-        let [inbound, outbound] = await Promise.all([getRouteStop(company, route, 'inbound'), getRouteStop(company, route, 'outbound')])
-
-        if (inbound.length) {
-          let routeInfo = await getRoute(company, route)
-          const callback = {
-            company,
-            route
-          }
-          let orig = routeInfo.orig_tc
-          let dest = routeInfo.dest_tc
-          let inboundCallback = JSON.stringify({ ...callback, dir: 'inbound' })
-          let outboundCallback = JSON.stringify({ ...callback, dir: 'outbound' })
-
-          ctx.reply(
-            '請選擇乘搭方向↔',
-            Markup.inlineKeyboard([
-              [
-                { text: orig, callback_data: inboundCallback },
-                { text: dest, callback_data: outboundCallback }
-              ]
-            ])
-              .oneTime()
-              .resize()
-              .extra()
-          )
-          return ctx.wizard.next()
-        }
-        else {
-          let ids = await getRouteStop(company, route, 'outbound')
-          let names = await getStopsName(ids)
-          let keyboard = genKeyboard(company, route, 'outbound', names, ids)
-
-          ctx.reply(
-            '請選擇巴士站🚏',
-            Markup.inlineKeyboard(keyboard)
-              .oneTime()
-              .resize()
-              .extra()
-          )
-          return ctx.wizard.selectStep(2)
-        }
-      } else if (company == 'NLB') {
-        // TODO: NLB Bus
-      }
-    } else {
-      ctx.reply('無此路線❌')
-    }
-  },
-  async ctx => {
-    if (!ctx.update.hasOwnProperty('callback_query')) {
-      console.log('No callback data');
-      return
-    }
-
-    let { company, route, dir } = JSON.parse(ctx.update.callback_query.data)
-    let ids = await getRouteStop(company, route, dir)
-    let names = await getStopsName(ids)
-    let keyboard = genKeyboard(company, route, dir, names, ids)
-
-    ctx.reply(
-      '請選擇巴士站🚏',
-      Markup.inlineKeyboard(keyboard)
-        .oneTime()
-        .resize()
-        .extra()
-    )
-    return ctx.wizard.next();
-  },
-  async ctx => {
-    if (!ctx.update.hasOwnProperty('callback_query')) {
-      console.log('No callback data');
-      return
-    }
-
-    let { company, route, dir, stop } = JSON.parse(ctx.update.callback_query.data)
-    let etas = await getETA(company, route, stop)
-
-    if (etas.length === 0) {
-      ctx.reply('沒有到站時間預報⛔')
-    } else {
-      let str = '到站時間如下⌚'
-      for (eta of etas) {
-        str += `\n${eta}`
-      }
-      ctx.reply(str)
-    }
-
-    return ctx.scene.leave();
-  }
-)
+scene.enter((ctx) => ctx.reply('請輸入路線號碼🔢'));
 
 const bot = new Telegraf(TOKEN)
-const stage = new Stage([wizard], { default: 'eta' })
+const stage = new Stage([scene])
 
 bot.use(session())
 bot.use(stage.middleware())
