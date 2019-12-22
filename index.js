@@ -1,5 +1,6 @@
 require('dotenv').config()
 require('./data/routes.json')
+require('./data/companies.json')
 const fs = require('fs')
 const express = require('express')
 const axios = require('axios')
@@ -8,10 +9,15 @@ const Markup = require('telegraf/markup')
 const session = require('telegraf/session')
 const Stage = require('telegraf/stage')
 
-const STATION_ACTION = '00'
-const ETA_ACTION = '01'
+const CHECK_CIRCULAR_ACTION = '00'
+const DIRECTION_ACTION = '01'
+const STOPS_ACTION = '02'
+const ETA_ACTION = '03'
 
-let routes = readRoutes()
+const CHECK_CIRCULAR_ACTION_REGEX = new RegExp(`^${CHECK_CIRCULAR_ACTION},`)
+const DIRECTION_ACTION_REGEX = new RegExp(`^${DIRECTION_ACTION},`)
+const STOPS_ACTION_REGEX = new RegExp(`^${STOPS_ACTION},`)
+const ETA_ACTION_REGEX = new RegExp(`^${ETA_ACTION},`)
 
 const TOKEN = process.env.API_KEY
 const scene = new Telegraf.BaseScene('eta');
@@ -20,44 +26,14 @@ scene.enter(ctx => ctx.reply('請輸入路線號碼🔢'));
 
 scene.hears(/[A-Za-z0-9]*[0-9][A-Za-z0-9]*/g, async ctx => {
   const route = ctx.update.message.text
-  const company = isValidRoute(route)
+  const companies = isValidRoute(route)
 
-  if (company) {
-    if (company == 'CTB' || company == 'NWFB') {
-      let [inbound, outbound] = await Promise.all([getRouteStop(company, route, 'inbound'), getRouteStop(company, route, 'outbound')])
-
-      // Check if it is a circular route
-      if (inbound.length) {
-        let routeInfo = await getRoute(company, route)
-        const callback = `${STATION_ACTION},${company},${route}`
-        let orig = routeInfo.orig_tc
-        let dest = routeInfo.dest_tc
-        let inboundCallback = callback + ',inbound'
-        let outboundCallback = callback + ',outbound'
-
-        ctx.reply(
-          '請選擇乘搭方向↔',
-          Markup.inlineKeyboard([
-            [
-              { text: orig, callback_data: inboundCallback },
-              { text: dest, callback_data: outboundCallback }
-            ]
-          ])
-            .extra()
-        )
-      }
-      else {
-        let stopIds = await getRouteStop(company, route, 'outbound')
-        let stopNames = await getStopsName(stopIds)
-        let keyboard = buildKeyboard(ETA_ACTION, company, route, 'outbound', stopNames, stopIds)
-
-        ctx.reply(
-          '請選擇巴士站🚏',
-          Markup.inlineKeyboard(keyboard)
-            .extra()
-        )
-      }
-    } else if (company == 'NLB') {
+  if (companies.length > 1) {
+    await askCompany(ctx, companies, route)
+  } else if (companies.length === 1) {
+    if (companies == 'CTB' || companies == 'NWFB') {
+      checkCircular(ctx, companies, route)
+    } else if (companies == 'NLB') {
       // TODO: NLB Bus
     }
   } else {
@@ -65,24 +41,28 @@ scene.hears(/[A-Za-z0-9]*[0-9][A-Za-z0-9]*/g, async ctx => {
   }
 })
 
-// List all stops of a route with given direction
-scene.action(/^00,/g, async ctx => {
-  let [, company, route, dir] = ctx.update.callback_query.data.split(',')
-  let ids = await getRouteStop(company, route, dir)
-  let names = await getStopsName(ids)
-  let keyboard = buildKeyboard(ETA_ACTION, company, route, dir, names, ids)
+// Check if the route is circular
+scene.action(CHECK_CIRCULAR_ACTION_REGEX, async ctx => {
+  const [, company, route] = ctx.update.callback_query.data.split(',')
+  await checkCircular(ctx, company, route)
+});
 
-  ctx.reply(
-    '請選擇巴士站🚏',
-    Markup.inlineKeyboard(keyboard)
-      .extra()
-  )
+// Ask for the route direction
+scene.action(DIRECTION_ACTION_REGEX, async ctx => {
+  const [, company, route] = ctx.update.callback_query.data.split(',')
+  await askDirection(ctx, company, route)
+});
+
+// List all stops of a route with given direction
+scene.action(STOPS_ACTION_REGEX, async ctx => {
+  const [, company, route, dir] = ctx.update.callback_query.data.split(',')
+  await askStops(ctx, company, route, dir)
 });
 
 // Get the ETA
-scene.action(/^01,/g, async ctx => {
-  let [, company, route, dir, stop] = ctx.update.callback_query.data.split(',')
-  let etas = await getETA(company, route, stop)
+scene.action(ETA_ACTION_REGEX, async ctx => {
+  const [, company, route, dir, stop] = ctx.update.callback_query.data.split(',')
+  const etas = await getETA(company, route, stop)
 
   if (etas.length === 0) {
     ctx.reply('沒有到站時間預報⛔')
@@ -93,8 +73,6 @@ scene.action(/^01,/g, async ctx => {
     }
     ctx.reply(str)
   }
-
-  return ctx.scene.leave();
 });
 
 scene.use(ctx => ctx.reply('無此路線❌'))
@@ -116,10 +94,73 @@ app.listen(3000, function () {
   console.log('Telegram app listening on port 3000!')
 })
 
-// Get the routes data from Json file
-function readRoutes() {
+async function askCompany(ctx, companies, route) {
+  let companyNames = readJSON('companies')
+  let keyboard = []
+
+  for (company of companies) {
+    keyboard.push(
+      {
+        text: companyNames[company].tc_name,
+        callback_data: `${CHECK_CIRCULAR_ACTION},${company},${route}`
+      }
+    )
+  }
+
+  ctx.reply(
+    '請選擇巴士公司🚍',
+    Markup.inlineKeyboard(keyboard).extra()
+  )
+}
+
+// Check if it is a circular route
+async function checkCircular(ctx, company, route) {
+  let inbound = await getRouteStop(company, route, 'inbound')
+
+  if (inbound.length) {
+    await askDirection(ctx, company, route)
+  }
+  else {
+    await askStops(ctx, company, route)
+  }
+}
+
+async function askDirection(ctx, company, route) {
+  let routeInfo = await getRoute(company, route)
+  const callback = `${STOPS_ACTION},${company},${route}`
+  let orig = routeInfo.orig_tc
+  let dest = routeInfo.dest_tc
+  let inboundCallback = callback + ',inbound'
+  let outboundCallback = callback + ',outbound'
+
+  ctx.reply(
+    '請選擇乘搭方向↔',
+    Markup.inlineKeyboard([
+      [
+        { text: orig, callback_data: inboundCallback },
+        { text: dest, callback_data: outboundCallback }
+      ]
+    ])
+      .extra()
+  )
+}
+
+async function askStops(ctx, company, route, dir = 'outbound') {
+  let stopIds = await getRouteStop(company, route, dir)
+  let stopNames = await getStopsName(stopIds)
+  let keyboard = buildKeyboard(ETA_ACTION, company, route, dir, stopNames, stopIds)
+
+  ctx.reply(
+    '請選擇巴士站🚏',
+    Markup.inlineKeyboard(keyboard)
+      .extra()
+  )
+}
+
+// Get the JSON data
+function readJSON(file) {
   try {
-    const json = fs.readFileSync('./data/routes.json', 'utf8')
+    const json = fs.readFileSync(`./data/${file}.json`, 'utf8')
     return JSON.parse(json)
   } catch (err) {
     console.log("File read failed:", err)
@@ -131,10 +172,13 @@ function readRoutes() {
 function isValidRoute(route) {
   route = route.toUpperCase()
   if (/[A-Za-z0-9]*[0-9][A-Za-z0-9]*/.test(route)) {
+    let routes = readJSON('routes')
+    let companies = []
     for (company in routes) {
       if (routes[company].includes(route))
-        return company
+        companies.push(company)
     }
+    return companies
   }
 }
 
