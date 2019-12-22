@@ -24,6 +24,8 @@ const scene = new Telegraf.BaseScene('eta');
 
 scene.enter(ctx => ctx.reply('請輸入路線號碼🔢'));
 
+scene.command('/start', ctx => ctx.scene.enter('eta'))
+
 scene.hears(/[A-Za-z0-9]*[0-9][A-Za-z0-9]*/g, async ctx => {
   const route = ctx.update.message.text
   const companies = isValidRoute(route)
@@ -32,7 +34,7 @@ scene.hears(/[A-Za-z0-9]*[0-9][A-Za-z0-9]*/g, async ctx => {
     await askCompany(ctx, companies, route)
   } else if (companies.length === 1) {
     if (companies == 'CTB' || companies == 'NWFB') {
-      checkCircular(ctx, companies, route)
+      await checkCircular(ctx, companies, route)
     } else if (companies == 'NLB') {
       // TODO: NLB Bus
     }
