@@ -2,14 +2,11 @@ require('dotenv').config()
 require('./data/routes.json')
 const fs = require('fs')
 const express = require('express')
-const bodyParser = require('body-parser')
 const axios = require('axios')
 const Telegraf = require('telegraf')
-const Extra = require('telegraf/extra')
 const Markup = require('telegraf/markup')
 const session = require('telegraf/session')
 const Stage = require('telegraf/stage')
-const WizardScene = require('telegraf/scenes/wizard')
 
 const STATION_ACTION = '00'
 const ETA_ACTION = '01'
@@ -46,21 +43,17 @@ scene.hears(/[A-Za-z0-9]*[0-9][A-Za-z0-9]*/g, async ctx => {
               { text: dest, callback_data: outboundCallback }
             ]
           ])
-            .oneTime()
-            .resize()
             .extra()
         )
       }
       else {
         let stopIds = await getRouteStop(company, route, 'outbound')
         let stopNames = await getStopsName(stopIds)
-        let keyboard = buildKeyboard(company, route, 'outbound', stopNames, stopIds)
+        let keyboard = buildKeyboard(ETA_ACTION, company, route, 'outbound', stopNames, stopIds)
 
         ctx.reply(
           '請選擇巴士站🚏',
           Markup.inlineKeyboard(keyboard)
-            .oneTime()
-            .resize()
             .extra()
         )
       }
@@ -73,13 +66,35 @@ scene.hears(/[A-Za-z0-9]*[0-9][A-Za-z0-9]*/g, async ctx => {
 })
 
 // List all stops of a route with given direction
-scene.action(/^00,/g, ctx => {
-  ctx.reply('You choose 00');
+scene.action(/^00,/g, async ctx => {
+  let [, company, route, dir] = ctx.update.callback_query.data.split(',')
+  let ids = await getRouteStop(company, route, dir)
+  let names = await getStopsName(ids)
+  let keyboard = buildKeyboard(ETA_ACTION, company, route, dir, names, ids)
+
+  ctx.reply(
+    '請選擇巴士站🚏',
+    Markup.inlineKeyboard(keyboard)
+      .extra()
+  )
 });
 
 // Get the ETA
-scene.action(/^01,/g, ctx => {
-  ctx.reply('You choose 01');
+scene.action(/^01,/g, async ctx => {
+  let [, company, route, dir, stop] = ctx.update.callback_query.data.split(',')
+  let etas = await getETA(company, route, stop)
+
+  if (etas.length === 0) {
+    ctx.reply('沒有到站時間預報⛔')
+  } else {
+    let str = '預計到站時間如下⌚'
+    for (const [i, eta] of etas.entries()) {
+      str += `\n${i + 1}. ${eta}`
+    }
+    ctx.reply(str)
+  }
+
+  return ctx.scene.leave();
 });
 
 scene.use(ctx => ctx.reply('無此路線❌'))
@@ -176,7 +191,7 @@ async function getETA(company, route, stop) {
   return etas
 }
 
-function buildKeyboard(company, route, dir, names, ids) {
+function buildKeyboard(action, company, route, dir, names, ids) {
   let keyboard = []
   let lastStop
 
@@ -184,7 +199,7 @@ function buildKeyboard(company, route, dir, names, ids) {
     lastStop = names.pop()
 
   for (let i = 0; i < names.length; i += 2) {
-    const callback = `${ETA_ACTION},${company},${route},${dir}`
+    const callback = `${action},${company},${route},${dir}`
     const callback1 = callback + `,${ids[i]}`
     const callback2 = callback + `,${ids[i + 1]}`
 
@@ -196,7 +211,7 @@ function buildKeyboard(company, route, dir, names, ids) {
   }
 
   if (lastStop) {
-    const callback3 = `${ETA_ACTION},${company},${route},${dir},${ids.pop()}`
+    const callback3 = `${action},${company},${route},${dir},${ids.pop()}`
     keyboard.push([{ text: lastStop, callback_data: callback3 }])
   }
 
