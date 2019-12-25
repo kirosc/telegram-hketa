@@ -71,18 +71,45 @@ scene.action(STOPS_ACTION_REGEX, async ctx => {
 
 // Get the ETA
 scene.action(ETA_ACTION_REGEX, async ctx => {
-  const [, company, route, dir, stop] = ctx.update.callback_query.data.split(',')
-  const etas = await getETA(company, route, stop)
+  const [, company, route, dir, stopId] = ctx.update.callback_query.data.split(',')
+  let etas
+  let str = '沒有到站時間預報⛔'
 
-  if (etas.length === 0) {
-    ctx.reply('沒有到站時間預報⛔')
-  } else {
-    let str = '預計到站時間如下⌚'
-    for (const [i, eta] of etas.entries()) {
-      str += `\n${i + 1}. ${eta}`
+  switch (company) {
+    case 'NLB':
+      let routeId = dir
+      etas = await getETA(company, routeId, stopId)
+      if (etas.length === 0) break
+
+      str = '預計到站時間如下⌚'
+      for (const [i, eta] of etas.entries()) {
+        const { time, departed, noGPS } = eta
+        str += `\n${i + 1}. ${time} `
+
+        if (!departed) {
+          str += '未從總站開出'
+        } else {
+          str += '已從總站開出'
+        }
+
+        if (noGPS) {
+         str += ', 預計時間'
+        }
+      }
+
+      break
+    case 'CTB':
+    case 'NWFB':
+      etas = await getETA(company, route, stopId)
+      if (etas.length === 0) break
+
+      str = '預計到站時間如下⌚'
+      for (const [i, eta] of etas.entries()) {
+        str += `\n${i + 1}. ${eta}`
     }
-    ctx.reply(str)
   }
+
+  ctx.reply(str)
 });
 
 scene.use(ctx => ctx.reply('無此路線❌'))
@@ -143,8 +170,6 @@ async function checkCircular(ctx, company, route) {
     case 'NWFB':
       let inbound = await getRouteStop(company, route, 'inbound')
       inbound.length ? await askDirection(ctx, company, route) : await askStops(ctx, company, route)
-
-      break
   }
 }
 
@@ -194,14 +219,12 @@ async function askStops(ctx, company, route, dir = 'outbound', routeId) {
       [stopNames, stopIds] = await getRouteStop(company, route, null, routeId)
       keyboard = buildStopsKeyboard(ETA_ACTION, company, route, routeId, null, stopNames, stopIds)
 
-      // TODO: Build keyboard
       break
     case 'CTB':
     case 'NWFB':
       stopIds = await getRouteStop(company, route, dir)
       stopNames = await getStopsName(stopIds)
       keyboard = buildStopsKeyboard(ETA_ACTION, company, route, null, dir, stopNames, stopIds)
-      break
   }
 
   ctx.reply(
@@ -300,15 +323,47 @@ async function getStopsName(stopsID) {
 }
 
 async function getETA(company, route, stop) {
-  let url = 'https://rt.data.gov.hk/v1/transport/citybus-nwfb/eta'
-  let res = await axios.get(url + `/${company}/${stop}/${route}`)
-  let data = res.data.data
+  let url, res
   let etas = []
 
-  for (datum of data) {
-    const options = { hour12: 'true', timeZone: 'Asia/Hong_Kong' }
-    const eta = new Date(datum.eta).toLocaleTimeString('en-HK', options).split(' ')[0]
-    etas.push(eta)
+  switch (company) {
+    case 'NLB':
+      url = 'https://rt.data.gov.hk/v1/transport/nlb/stop.php?action=estimatedArrivals'
+      res = await axios.post(url, 
+        {
+          routeId: route,
+          stopId: stop,
+          language: "zh"
+        })
+
+        let { estimatedArrivals } = res.data
+
+        if (estimatedArrivals.length === 0) {
+          return []
+        } else {
+          for (const { estimatedArrivalTime, departed, noGPS } of estimatedArrivals) {
+            let time = estimatedArrivalTime.split(' ')[1]
+            const eta = {
+              time,
+              departed,
+              noGPS
+            }
+            etas.push(eta)
+          }
+        }
+        
+        break
+    case 'CTB':
+    case 'NWFB':
+      url = 'https://rt.data.gov.hk/v1/transport/citybus-nwfb/eta'
+      res = await axios.get(url + `/${company}/${stop}/${route}`)
+      let data = res.data.data
+
+      for (const { eta } of data) {
+        const options = { hour12: 'true', timeZone: 'Asia/Hong_Kong' }
+        const eta = new Date(eta).toLocaleTimeString('en-HK', options).split(' ')[0]
+        etas.push(eta)
+      }
   }
   return etas
 }
