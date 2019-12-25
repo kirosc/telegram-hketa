@@ -1,5 +1,6 @@
 require('dotenv').config()
 require('./data/routes.json')
+require('./data/routes-NLB.json')
 require('./data/companies.json')
 const fs = require('fs')
 const express = require('express')
@@ -27,16 +28,14 @@ scene.enter(ctx => ctx.reply('請輸入路線號碼🔢'));
 scene.command('/start', ctx => ctx.scene.enter('eta'))
 
 scene.hears(/[A-Za-z0-9]*[0-9][A-Za-z0-9]*/g, async ctx => {
-  const route = ctx.update.message.text
+  const route = ctx.update.message.text.toUpperCase()
   const companies = isValidRoute(route)
 
   if (companies.length > 1) {
     await askCompany(ctx, companies, route)
   } else if (companies.length === 1) {
-    if (companies == 'CTB' || companies == 'NWFB') {
-      await checkCircular(ctx, companies, route)
-    } else if (companies == 'NLB') {
-      // TODO: NLB Bus
+    if (companies == 'CTB' || companies == 'NWFB' || companies == 'NLB') {
+      await checkCircular(ctx, companies[0], route)
     }
   } else {
     ctx.reply('無此路線❌')
@@ -58,7 +57,16 @@ scene.action(DIRECTION_ACTION_REGEX, async ctx => {
 // List all stops of a route with given direction
 scene.action(STOPS_ACTION_REGEX, async ctx => {
   const [, company, route, dir] = ctx.update.callback_query.data.split(',')
-  await askStops(ctx, company, route, dir)
+
+  switch (company) {
+    case 'NLB':
+      await askStops(ctx, company, route, null, dir)
+      break
+    case 'CTB':
+    case 'NWFB':
+      await askStops(ctx, company, route, dir)
+      break
+  }
 });
 
 // Get the ETA
@@ -117,40 +125,84 @@ async function askCompany(ctx, companies, route) {
 
 // Check if it is a circular route
 async function checkCircular(ctx, company, route) {
-  let inbound = await getRouteStop(company, route, 'inbound')
+  switch (company) {
+    case 'NLB':
+      let routes = readJSON('routes-NLB')
+      let circular = routes[route].length > 1
 
-  if (inbound.length) {
-    await askDirection(ctx, company, route)
-  }
-  else {
-    await askStops(ctx, company, route)
+      if (circular) {
+        await askDirection(ctx, company, route)
+      } else {
+        let { routeId } = routes[route][0]
+        
+        await askStops(ctx, company, route, null, routeId)
+      }
+
+      break
+    case 'CTB':
+    case 'NWFB':
+      let inbound = await getRouteStop(company, route, 'inbound')
+      inbound.length ? await askDirection(ctx, company, route) : await askStops(ctx, company, route)
+
+      break
   }
 }
 
 async function askDirection(ctx, company, route) {
-  let routeInfo = await getRoute(company, route)
-  const callback = `${STOPS_ACTION},${company},${route}`
-  let orig = routeInfo.orig_tc
-  let dest = routeInfo.dest_tc
-  let inboundCallback = callback + ',inbound'
-  let outboundCallback = callback + ',outbound'
+  let keyboard = []
+  let callback
 
-  ctx.reply(
-    '請選擇乘搭方向↔',
-    Markup.inlineKeyboard([
-      [
+  switch (company) {
+    case 'NLB':
+      let routes = await getRoute(company, route)
+      callback = `${STOPS_ACTION},${company},${route}`
+
+      for (route of routes) {
+        const { routeName_c, routeId } = route
+        keyboard.push([
+          { text: routeName_c, callback_data: `${callback},${routeId}` }
+        ])
+      }
+
+      break
+    case 'CTB':
+    case 'NWFB':
+      let { orig_tc, dest_tc } = await getRoute(company, route)
+      callback = `${STOPS_ACTION},${company},${route}`
+      let orig = orig_tc
+      let dest = dest_tc
+      let inboundCallback = callback + ',inbound'
+      let outboundCallback = callback + ',outbound'
+
+      keyboard = [
         { text: orig, callback_data: inboundCallback },
         { text: dest, callback_data: outboundCallback }
       ]
-    ])
+  }
+
+  ctx.reply(
+    '請選擇乘搭方向↔',
+    Markup.inlineKeyboard(keyboard)
       .extra()
   )
 }
 
-async function askStops(ctx, company, route, dir = 'outbound') {
-  let stopIds = await getRouteStop(company, route, dir)
-  let stopNames = await getStopsName(stopIds)
-  let keyboard = buildKeyboard(ETA_ACTION, company, route, dir, stopNames, stopIds)
+async function askStops(ctx, company, route, dir = 'outbound', routeId) {
+  let stopNames, stopIds, keyboard
+  switch (company) {
+    case 'NLB':
+      [stopNames, stopIds] = await getRouteStop(company, route, null, routeId)
+      keyboard = buildStopsKeyboard(ETA_ACTION, company, route, routeId, null, stopNames, stopIds)
+
+      // TODO: Build keyboard
+      break
+    case 'CTB':
+    case 'NWFB':
+      stopIds = await getRouteStop(company, route, dir)
+      stopNames = await getStopsName(stopIds)
+      keyboard = buildStopsKeyboard(ETA_ACTION, company, route, null, dir, stopNames, stopIds)
+      break
+  }
 
   ctx.reply(
     '請選擇巴士站🚏',
@@ -172,7 +224,6 @@ function readJSON(file) {
 
 // Check if the route exists can return the company code
 function isValidRoute(route) {
-  route = route.toUpperCase()
   if (/[A-Za-z0-9]*[0-9][A-Za-z0-9]*/.test(route)) {
     let routes = readJSON('routes')
     let companies = []
@@ -186,24 +237,49 @@ function isValidRoute(route) {
 
 // Get the route information, like origin and destination
 async function getRoute(company, route) {
-  let url = 'https://rt.data.gov.hk/v1/transport/citybus-nwfb/route'
-  let res = await axios.get(url + `/${company}/${route}`)
-  return res.data.data
+  switch (company) {
+    case 'NLB':
+      let routes = readJSON('routes-NLB')
+      return routes[route]
+    case 'CTB':
+    case 'NWFB':
+      let url = 'https://rt.data.gov.hk/v1/transport/citybus-nwfb/route'
+      let res = await axios.get(url + `/${company}/${route}`)
+      return res.data.data
+  }
+
 }
 
 // Get the list of stops of a direction of route in ID
-async function getRouteStop(company, route, dir) {
-  let url = 'https://rt.data.gov.hk/v1/transport/citybus-nwfb/route-stop'
-  let res = await axios.get(url + `/${company}/${route}/${dir}`)
-  let stops = []
+async function getRouteStop(company, route, dir, routeId) {
+  let url, res
+  switch (company) {
+    case 'NLB':
+      url = 'https://rt.data.gov.hk/v1/transport/nlb/stop.php?action=list'
+      res = await axios.post(url, { routeId })
+      let stopNames = [], stopIds = []
 
-  for (datum of res.data.data)
-    stops.push(datum.stop)
+      for (const { stopName_c, stopId } of res.data.stops) {
+        stopNames.push(stopName_c)
+        stopIds.push(stopId)
+      }
 
-  return stops
+      return [stopNames, stopIds]
+    case 'CTB':
+    case 'NWFB':
+      url = 'https://rt.data.gov.hk/v1/transport/citybus-nwfb/route-stop'
+      res = await axios.get(url + `/${company}/${route}/${dir}`)
+      let stops = []
+
+      for (datum of res.data.data)
+        stops.push(datum.stop)
+
+      return stops
+  }
 }
 
 // Get the stop name of a list of stop ID
+// For CTB and NWFB only
 async function getStopsName(stopsID) {
   let url = 'https://rt.data.gov.hk/v1/transport/citybus-nwfb/stop'
   let tasks = []
@@ -237,17 +313,25 @@ async function getETA(company, route, stop) {
   return etas
 }
 
-function buildKeyboard(action, company, route, dir, names, ids) {
+function buildStopsKeyboard(action, company, route, routeId, dir, names, stopIds) {
   let keyboard = []
-  let lastStop
+  let lastStop, callback
 
   if (names.length % 2 !== 0)
     lastStop = names.pop()
 
+  switch (company) {
+    case 'NLB':
+      callback = `${action},${company},${route},${routeId}`
+      break
+    case 'CTB':
+    case 'NWFB':
+      callback = `${action},${company},${route},${dir}`
+  }
+
   for (let i = 0; i < names.length; i += 2) {
-    const callback = `${action},${company},${route},${dir}`
-    const callback1 = callback + `,${ids[i]}`
-    const callback2 = callback + `,${ids[i + 1]}`
+    const callback1 = callback + `,${stopIds[i]}`
+    const callback2 = callback + `,${stopIds[i + 1]}`
 
     const button = [
       { text: names[i], callback_data: callback1 },
@@ -257,7 +341,7 @@ function buildKeyboard(action, company, route, dir, names, ids) {
   }
 
   if (lastStop) {
-    const callback3 = `${action},${company},${route},${dir},${ids.pop()}`
+    const callback3 = `${callback},${stopIds.pop()}`
     keyboard.push([{ text: lastStop, callback_data: callback3 }])
   }
 
