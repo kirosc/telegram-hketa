@@ -13,7 +13,7 @@ let promise1 = axios
   .then(res => {
     const routes = res.data.data
     for ({ route } of routes) {
-      // Get ROUTE_NAME
+      // Get ROUTE_NUMBER
       CTBRoutes.add(route)
     }
   })
@@ -26,21 +26,21 @@ let promise2 = axios
   .then(res => {
     const routes = res.data.data
     for ({ route } of routes) {
-      // Get ROUTE_NAME
+      // Get ROUTE_NUMBER
       NWFBRoutes.add(route)
     }
   })
 
 // NLB
 let promise3 = axios
-  .get(
-    'https://api.data.gov.hk/v1/filter?q=%7B%22resource%22%3A%22http%3A%2F%2Fstatic.data.gov.hk%2Ftd%2Froutes-and-fares%2FROUTE_BUS.mdb%22%2C%22section%22%3A1%2C%22format%22%3A%22json%22%2C%22filters%22%3A%5B%5B2%2C%22eq%22%2C%5B%22NLB%22%5D%5D%5D%7D'
+  .post(
+    'https://rt.data.gov.hk/v1/transport/nlb/route.php?action=list'
   )
   .then(res => {
-    const routes = res.data.rows
-    for (route of routes) {
-      // Get ROUTE_NAME
-      NLBRoutes.add(route[5])
+    const { routes } = res.data
+    for ({ routeNo } of routes) {
+      // Get ROUTE_NUMBER
+      NLBRoutes.add(routeNo)
     }
   })
 
