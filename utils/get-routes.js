@@ -1,3 +1,4 @@
+// Collect and save all routes that supporting ETA checking
 const axios = require('axios')
 const fs = require('fs')
 

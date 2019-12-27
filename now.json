@@ -1,6 +1,6 @@
 {
     "version": 2,
-    "name": "tg-hk-eta",
+    "name": "tg-hketa",
     "env": {
         "API_KEY": "@api_key"
     },
