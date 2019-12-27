@@ -25,7 +25,11 @@ const scene = new Telegraf.BaseScene('eta');
 
 scene.enter(ctx => ctx.reply('請輸入路線號碼🔢'));
 
-scene.command('/start', ctx => ctx.scene.enter('eta'))
+scene.command('start', ctx => ctx.scene.enter('eta'))
+scene.command('contribute', ctx => ctx.replyWithMarkdown(
+  `Make this bot better!
+[Open Source Project](https://github.com/kirosc/tg-hketa)`
+))
 
 scene.hears(/[A-Za-z0-9]*[0-9][A-Za-z0-9]*/g, async ctx => {
   const route = ctx.update.message.text.toUpperCase()
@@ -93,7 +97,7 @@ scene.action(ETA_ACTION_REGEX, async ctx => {
         }
 
         if (noGPS) {
-         str += ', 預計時間'
+          str += ', 預計時間'
         }
       }
 
@@ -106,7 +110,7 @@ scene.action(ETA_ACTION_REGEX, async ctx => {
       str = '預計到站時間如下⌚'
       for (const [i, eta] of etas.entries()) {
         str += `\n${i + 1}. ${eta}`
-    }
+      }
   }
 
   ctx.reply(str)
@@ -121,6 +125,12 @@ bot.use(session())
 bot.use(stage.middleware())
 
 bot.start(ctx => ctx.scene.enter('eta'))
+bot.command('contribute', ctx => ctx.replyWithMarkdown(
+  `Make this bot better!
+[Open Source Project](https://github.com/kirosc/tg-hketa)`))
+bot.on('message', ctx => {
+  ctx.reply('輸入 /start 開始查詢')
+})
 
 const app = express()
 
@@ -161,7 +171,7 @@ async function checkCircular(ctx, company, route) {
         await askDirection(ctx, company, route)
       } else {
         let { routeId } = routes[route][0]
-        
+
         await askStops(ctx, company, route, null, routeId)
       }
 
@@ -329,30 +339,30 @@ async function getETA(company, route, stop) {
   switch (company) {
     case 'NLB':
       url = 'https://rt.data.gov.hk/v1/transport/nlb/stop.php?action=estimatedArrivals'
-      res = await axios.post(url, 
+      res = await axios.post(url,
         {
           routeId: route,
           stopId: stop,
           language: "zh"
         })
 
-        let { estimatedArrivals } = res.data
+      let { estimatedArrivals } = res.data
 
-        if (estimatedArrivals.length === 0) {
-          return []
-        } else {
-          for (const { estimatedArrivalTime, departed, noGPS } of estimatedArrivals) {
-            let time = estimatedArrivalTime.split(' ')[1]
-            const eta = {
-              time,
-              departed,
-              noGPS
-            }
-            etas.push(eta)
+      if (estimatedArrivals.length === 0) {
+        return []
+      } else {
+        for (const { estimatedArrivalTime, departed, noGPS } of estimatedArrivals) {
+          let time = estimatedArrivalTime.split(' ')[1]
+          const eta = {
+            time,
+            departed,
+            noGPS
           }
+          etas.push(eta)
         }
-        
-        break
+      }
+
+      break
     case 'CTB':
     case 'NWFB':
       url = 'https://rt.data.gov.hk/v1/transport/citybus-nwfb/eta'
