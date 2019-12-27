@@ -361,8 +361,8 @@ async function getETA(company, route, stop) {
 
       for (const { eta } of data) {
         const options = { hour12: 'true', timeZone: 'Asia/Hong_Kong' }
-        const eta = new Date(eta).toLocaleTimeString('en-HK', options).split(' ')[0]
-        etas.push(eta)
+        const etaLocalTime = new Date(eta).toLocaleTimeString('en-HK', options).split(' ')[0]
+        etas.push(etaLocalTime)
       }
   }
   return etas
