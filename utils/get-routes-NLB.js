@@ -14,5 +14,10 @@ axios.get('https://rt.data.gov.hk/v1/transport/nlb/route.php?action=list')
     delete route.routeNo
     routes[routeNo].push(route)
   }
+  
+  for (routeNo in routes) {
+    // Sort the route by routeId    
+    routes[routeNo].sort((a, b) => (Number(a.routeId) > Number(b.routeId)) ? 1 : -1)
+  }
 })
 .then(() => fs.writeFileSync('./data/routes-NLB.json', JSON.stringify(routes, null, 2) , 'utf-8'))

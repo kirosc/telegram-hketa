@@ -8,8 +8,9 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "prod": "now --prod",
-    "dev": "now dev"
+    "prod": "now --prod --token=$NOW_TOKEN",
+    "dev": "now dev",
+    "updateRoutes": "node utils/get-routes-NLB.js && node utils/get-routes.js"
   },
   "keywords": [
     "nodejs",

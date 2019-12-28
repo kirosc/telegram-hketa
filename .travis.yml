@@ -1,0 +1,15 @@
+language: node_js
+node_js:
+  - node
+install:
+  - npm i
+  - npm i -D now
+script: npm run updateRoutes
+deploy:
+  provider: script
+  script: npm run prod
+  skip_cleanup: true
+  on:
+    branch: master
+after_deploy:
+  - curl -F "url=${NOW_SERVER}/message" "https://api.telegram.org/bot${TG_TOKEN}/setWebhook"
