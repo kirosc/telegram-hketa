@@ -10,5 +10,5 @@
     "routes": [
       { "src": "/message", "dest": "/index.js" }
     ],
-    "regions": ["hkg1", "tpe1", "sin1", "hnd1"]
+    "regions": ["sin1", "hnd1"]
 }  
