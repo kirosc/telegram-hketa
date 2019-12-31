@@ -1,10 +1,13 @@
 // Collect and save all routes that supporting ETA checking
 const axios = require('axios')
 const fs = require('fs')
+const convert = require('xml-js')
 
 let CTBRoutes = new Set()
 let NWFBRoutes = new Set()
 let NLBRoutes = new Set()
+let KMBRoutes = new Set()
+let LWBRoutes = new Set()
 
 // CTB
 let promise1 = axios
@@ -45,11 +48,32 @@ let promise3 = axios
     }
   })
 
-Promise.all([promise1, promise2, promise3]).then(() => {
+// KMB
+let promise4 = axios
+  .get(
+    'https://static.data.gov.hk/td/routes-fares-xml/ROUTE_BUS.xml'
+  )
+  .then(res => {
+    let routes = convert.xml2json(res.data, { compact: true, spaces: 4, ignoreDeclaration: true, textKey: "text" });
+    routes = JSON.parse(routes)
+    routes = routes.ROUTE_BUS.ROUTE
+
+    for (const route of routes) {
+      if (route.COMPANY_CODE.text === 'KMB') {
+        KMBRoutes.add(route.ROUTE_NAMEC.text)
+      } else if (route.COMPANY_CODE.text === 'LWB') {
+        LWBRoutes.add(route.ROUTE_NAMEC.text)
+      }
+    }
+  })
+
+Promise.all([promise1, promise2, promise3, promise4]).then(() => {
   const routes = {
     'CTB': Array.from(CTBRoutes),
     'NWFB': Array.from(NWFBRoutes),
-    'NLB': Array.from(NLBRoutes)
+    'NLB': Array.from(NLBRoutes),
+    'KMB': Array.from(KMBRoutes).sort(),
+    'LWB': Array.from(LWBRoutes).sort()
   }
 
   fs.writeFileSync('./data/routes.json', JSON.stringify(routes, null, 2), 'utf-8');
