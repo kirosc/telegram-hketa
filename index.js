@@ -37,12 +37,10 @@ scene.hears(/[A-Za-z0-9]*[0-9][A-Za-z0-9]*/g, async ctx => {
 
   if (companies.length > 1) {
     await askCompany(ctx, companies, route)
-  } else if (companies.length === 1) {
-    if (companies == 'CTB' || companies == 'NWFB' || companies == 'NLB') {
-      await checkCircular(ctx, companies[0], route)
-    }
-  } else {
+  } else if (companies.length === 0) {
     ctx.reply('無此路線❌')
+  } else {
+    await checkCircular(ctx, companies[0], route)
   }
 })
 
@@ -180,16 +178,38 @@ async function checkCircular(ctx, company, route) {
     case 'NWFB':
       let inbound = await getRouteStop(company, route, 'inbound')
       inbound.length ? await askDirection(ctx, company, route) : await askStops(ctx, company, route)
+
+      break
+    case 'KMB':
+    case 'LWB':
+      let res = await axios.get('http://search.kmb.hk/kmbwebsite/Function/FunctionRequest.ashx', {
+        params: {
+          action: 'getroutebound',
+          route: route
+        }
+      })
+      let bound = res.data.data
+
+      if (bound.length > 1) {
+        await askDirection(ctx, company, route, bound)
+      } else if (bound.length === 1) {
+        // Circular
+        // TODO: AskStops
+      } else {
+        console.error(`Can't find information of route ${route}`);
+        ctx.reply('無法找到此路線資料❌')
+      }
+      break
   }
 }
 
-async function askDirection(ctx, company, route) {
+async function askDirection(ctx, company, route, bound) {
   let keyboard = []
-  let callback
+  let routes, callback
 
   switch (company) {
     case 'NLB':
-      let routes = await getRoute(company, route)
+      routes = await getRoute(company, route)
       callback = `${STOPS_ACTION},${company},${route}`
 
       for (route of routes) {
@@ -213,6 +233,23 @@ async function askDirection(ctx, company, route) {
         { text: orig, callback_data: inboundCallback },
         { text: dest, callback_data: outboundCallback }
       ]
+
+      break
+    case 'KMB':
+    case 'LWB':
+      routes = await getRoute(company, route)
+      callback = `${STOPS_ACTION},${company},${route}`
+
+      for (const route of routes) {
+        let text = `${route.Origin_CHI} > ${route.Destination_CHI}`
+        let callback_data = callback + `,${route.Bound},${route.ServiceType.trim()}`
+
+        if (route.Desc_CHI !== '循環線' && route.Desc_CHI) {
+          text += ' - ' + route.Desc_CHI
+        }
+
+        keyboard.push([{ text, callback_data }])
+      }
   }
 
   ctx.reply(
@@ -279,6 +316,21 @@ async function getRoute(company, route) {
       let url = 'https://rt.data.gov.hk/v1/transport/citybus-nwfb/route'
       let res = await axios.get(url + `/${company}/${route}`)
       return res.data.data
+    case 'KMB':
+    case 'LWB':
+      function getRouteBound(bound) {
+        return axios.get('http://search.kmb.hk/kmbwebsite/Function/FunctionRequest.ashx', {
+          params: {
+            action: 'getSpecialRoute',
+            route,
+            bound
+          }
+        })
+      }
+
+      let [bound1, bound2] = await Promise.all([getRouteBound(1), getRouteBound(2)])
+
+      return bound1.data.data.routes.concat(bound2.data.data.routes)
   }
 
 }
