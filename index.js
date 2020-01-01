@@ -58,15 +58,20 @@ scene.action(DIRECTION_ACTION_REGEX, async ctx => {
 
 // List all stops of a route with given direction
 scene.action(STOPS_ACTION_REGEX, async ctx => {
-  const [, company, route, dir] = ctx.update.callback_query.data.split(',')
+  const [, company, route, option1, option2] = ctx.update.callback_query.data.split(',')
 
   switch (company) {
     case 'NLB':
-      await askStops(ctx, company, route, null, dir)
-      break
     case 'CTB':
     case 'NWFB':
-      await askStops(ctx, company, route, dir)
+      let dir = option1
+      await askStops(ctx, company, route, { dir })
+      break
+    case 'KMB':
+    case 'LWB':
+      let bound = option1
+      let serviceType = option2
+      await askStops(ctx, company, route, { bound, serviceType })
       break
   }
 });
@@ -170,14 +175,14 @@ async function checkCircular(ctx, company, route) {
       } else {
         let { routeId } = routes[route][0]
 
-        await askStops(ctx, company, route, null, routeId)
+        await askStops(ctx, company, route, { routeId })
       }
 
       break
     case 'CTB':
     case 'NWFB':
-      let inbound = await getRouteStop(company, route, 'inbound')
-      inbound.length ? await askDirection(ctx, company, route) : await askStops(ctx, company, route)
+      let inbound = await getRouteStop(company, route, { dir: 'inbound' })
+      inbound.length ? await askDirection(ctx, company, route) : await askStops(ctx, company, route, { dir: 'outbound' })
 
       break
     case 'KMB':
@@ -191,19 +196,20 @@ async function checkCircular(ctx, company, route) {
       let bound = res.data.data
 
       if (bound.length > 1) {
-        await askDirection(ctx, company, route, bound)
+        await askDirection(ctx, company, route)
       } else if (bound.length === 1) {
         // Circular
-        // TODO: AskStops
+        await askStops(ctx, company, route, {})
       } else {
         console.error(`Can't find information of route ${route}`);
         ctx.reply('無法找到此路線資料❌')
       }
+
       break
   }
 }
 
-async function askDirection(ctx, company, route, bound) {
+async function askDirection(ctx, company, route) {
   let keyboard = []
   let routes, callback
 
@@ -259,19 +265,30 @@ async function askDirection(ctx, company, route, bound) {
   )
 }
 
-async function askStops(ctx, company, route, dir = 'outbound', routeId) {
-  let stopNames, stopIds, keyboard
+async function askStops(ctx, company, route, options) {
+  let stopNames, stopIds = [], keyboard
   switch (company) {
     case 'NLB':
-      [stopNames, stopIds] = await getRouteStop(company, route, null, routeId)
-      keyboard = buildStopsKeyboard(ETA_ACTION, company, route, routeId, null, stopNames, stopIds)
+      [stopNames, stopIds] = await getRouteStop(company, route, options)
+      keyboard = buildStopsKeyboard(ETA_ACTION, company, route, stopNames, stopIds, options)
 
       break
     case 'CTB':
     case 'NWFB':
-      stopIds = await getRouteStop(company, route, dir)
+      stopIds = await getRouteStop(company, route, options)
       stopNames = await getStopsName(stopIds)
-      keyboard = buildStopsKeyboard(ETA_ACTION, company, route, null, dir, stopNames, stopIds)
+      keyboard = buildStopsKeyboard(ETA_ACTION, company, route, stopNames, stopIds, options)
+
+      break
+    case 'KMB':
+    case 'LWB':
+      stopNames = await getRouteStop(company, route, options)
+      for (const idx of stopNames.keys())
+        stopIds.push(idx)
+
+      keyboard = buildStopsKeyboard(ETA_ACTION, company, route, stopNames, stopIds, options)
+
+      break
   }
 
   ctx.reply(
@@ -336,13 +353,13 @@ async function getRoute(company, route) {
 }
 
 // Get the list of stops of a direction of route in ID
-async function getRouteStop(company, route, dir, routeId) {
-  let url, res
+async function getRouteStop(company, route, options) {
+  let url, res, stopNames = []
   switch (company) {
     case 'NLB':
       url = 'https://rt.data.gov.hk/v1/transport/nlb/stop.php?action=list'
-      res = await axios.post(url, { routeId })
-      let stopNames = [], stopIds = []
+      res = await axios.post(url, { routeId: options.routeId })
+      let stopIds = []
 
       for (const { stopName_c, stopId } of res.data.stops) {
         stopNames.push(stopName_c)
@@ -353,13 +370,31 @@ async function getRouteStop(company, route, dir, routeId) {
     case 'CTB':
     case 'NWFB':
       url = 'https://rt.data.gov.hk/v1/transport/citybus-nwfb/route-stop'
-      res = await axios.get(url + `/${company}/${route}/${dir}`)
+      res = await axios.get(url + `/${company}/${route}/${options.dir}`)
       let stops = []
 
       for (datum of res.data.data)
         stops.push(datum.stop)
 
       return stops
+
+    case 'KMB':
+    case 'LWB':
+      let { bound, serviceType } = options
+      url = 'http://search.kmb.hk/KMBWebSite/Function/FunctionRequest.ashx'
+      res = await axios.get(url, {
+        params: {
+          action: 'getstops',
+          route,
+          bound,
+          serviceType
+        }
+      })
+
+      for (const stop of res.data.data.routeStops)
+        stopNames.push(stop.CName)
+
+      return stopNames
   }
 }
 
@@ -430,7 +465,7 @@ async function getETA(company, route, stop) {
   return etas
 }
 
-function buildStopsKeyboard(action, company, route, routeId, dir, names, stopIds) {
+function buildStopsKeyboard(action, company, route, names, stopIds, options) {
   let keyboard = []
   let lastStop, callback
 
@@ -439,11 +474,16 @@ function buildStopsKeyboard(action, company, route, routeId, dir, names, stopIds
 
   switch (company) {
     case 'NLB':
-      callback = `${action},${company},${route},${routeId}`
+      callback = `${action},${company},${route},${options.routeId}`
       break
     case 'CTB':
     case 'NWFB':
-      callback = `${action},${company},${route},${dir}`
+      callback = `${action},${company},${route},${options.dir}`
+      break
+    case 'KMB':
+    case 'LWB':
+      callback = `${action},${company},${route},${options.bound},${options.serviceType}`
+      break
   }
 
   for (let i = 0; i < names.length; i += 2) {
