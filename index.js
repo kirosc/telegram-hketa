@@ -62,6 +62,9 @@ scene.action(STOPS_ACTION_REGEX, async ctx => {
 
   switch (company) {
     case 'NLB':
+      let routeId = option1
+      await askStops(ctx, company, route, { routeId })
+      break
     case 'CTB':
     case 'NWFB':
       let dir = option1
@@ -93,11 +96,7 @@ scene.action(ETA_ACTION_REGEX, async ctx => {
         const { time, departed, noGPS } = eta
         str += `\n${i + 1}. ${time} `
 
-        if (!departed) {
-          str += '未從總站開出'
-        } else {
-          str += '已從總站開出'
-        }
+        str += !departed ? '未從總站開出' : '已從總站開出'
 
         if (noGPS) {
           str += ', 預計時間'
@@ -482,7 +481,7 @@ function buildStopsKeyboard(action, company, route, names, stopIds, options) {
       break
     case 'KMB':
     case 'LWB':
-      callback = `${action},${company},${route},${options.bound},${options.serviceType}`
+      callback = `${action},${company},${route},${options.bound || ''},${options.serviceType || ''}`
       break
   }
 
