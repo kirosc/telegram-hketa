@@ -1,10 +1,12 @@
 require('dotenv').config()
+require('moment/locale/en-gb');
 require('./data/routes.json')
 require('./data/routes-NLB.json')
 require('./data/companies.json')
 const fs = require('fs')
 const express = require('express')
 const axios = require('axios')
+const moment = require('moment');
 const Telegraf = require('telegraf')
 const Markup = require('telegraf/markup')
 const session = require('telegraf/session')
@@ -81,14 +83,15 @@ scene.action(STOPS_ACTION_REGEX, async ctx => {
 
 // Get the ETA
 scene.action(ETA_ACTION_REGEX, async ctx => {
-  const [, company, route, dir, stopId] = ctx.update.callback_query.data.split(',')
+  const [, company, route, option1, option2, option3] = ctx.update.callback_query.data.split(',')
   let etas
   let str = '沒有到站時間預報⛔'
 
   switch (company) {
     case 'NLB':
-      let routeId = dir
-      etas = await getETA(company, routeId, stopId)
+      let routeId = option1
+      var stopId = option2
+      etas = await getETA(company, { routeId, stopId })
       if (etas.length === 0) break
 
       str = '預計到站時間如下⌚'
@@ -106,8 +109,20 @@ scene.action(ETA_ACTION_REGEX, async ctx => {
       break
     case 'CTB':
     case 'NWFB':
-      etas = await getETA(company, route, stopId)
+      var stopId = option2
+      etas = await getETA(company, { route, stopId })
       if (etas.length === 0) break
+
+      str = '預計到站時間如下⌚'
+      for (const [i, eta] of etas.entries()) {
+        str += `\n${i + 1}. ${eta}`
+      }
+
+      break
+    case 'KMB':
+    case 'LWB':
+      let bound = option1, serviceType = option2, stop_seq = option3
+      etas = await getETA(company, { route, bound, serviceType, stop_seq })
 
       str = '預計到站時間如下⌚'
       for (const [i, eta] of etas.entries()) {
@@ -282,6 +297,7 @@ async function askStops(ctx, company, route, options) {
     case 'KMB':
     case 'LWB':
       stopNames = await getRouteStop(company, route, options)
+      // StopSequence is the stopID
       for (const idx of stopNames.keys())
         stopIds.push(idx)
 
@@ -418,17 +434,18 @@ async function getStopsName(stopsID) {
   return names
 }
 
-async function getETA(company, route, stop) {
+async function getETA(company, options) {
   let url, res
   let etas = []
 
   switch (company) {
     case 'NLB':
+      var { routeId, stopId } = options
       url = 'https://rt.data.gov.hk/v1/transport/nlb/stop.php?action=estimatedArrivals'
       res = await axios.post(url,
         {
-          routeId: route,
-          stopId: stop,
+          routeId,
+          stopId,
           language: "zh"
         })
 
@@ -451,14 +468,39 @@ async function getETA(company, route, stop) {
       break
     case 'CTB':
     case 'NWFB':
+      var { route, stopId } = options
       url = 'https://rt.data.gov.hk/v1/transport/citybus-nwfb/eta'
-      res = await axios.get(url + `/${company}/${stop}/${route}`)
+      res = await axios.get(url + `/${company}/${stopId}/${route}`)
       let data = res.data.data
 
       for (const { eta } of data) {
-        const options = { hour12: 'true', timeZone: 'Asia/Hong_Kong' }
-        const etaLocalTime = new Date(eta).toLocaleTimeString('en-HK', options).split(' ')[0]
-        etas.push(etaLocalTime)
+        const etaHKTime = moment(eta).utcOffset('+0800').format('LTS')
+        etas.push(etaHKTime)
+      }
+
+      break
+    case 'KMB':
+    case 'LWB':
+      var { route, bound, serviceType, stop_seq } = options
+      url = 'http://etav3.kmb.hk'
+      res = await axios.get(url, {
+        params: {
+          action: 'geteta',
+          lang: 'tc',
+          route,
+          bound,
+          stop_seq,
+          serviceType,
+        }
+      })
+      let currentTime = moment().seconds(0)
+
+      for (const eta of res.data.response) {
+        let mETA = moment(eta.t, 'HH:mm')
+        // The bus has not passed
+        if (mETA.isAfter(currentTime))
+          etas.push(mETA.format('HH:mm'))
+        
       }
   }
   return etas
