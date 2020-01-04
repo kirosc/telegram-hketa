@@ -3,6 +3,10 @@ language: node_js
 node_js:
   - node
 
+branches:
+  only:
+  - master
+
 install:
   - npm i
   - npm i -D now
