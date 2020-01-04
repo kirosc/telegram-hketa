@@ -497,16 +497,23 @@ async function getETA(company, options) {
           serviceType,
         }
       })
+
+      if (!res.data.hasOwnProperty('response')) {
+        // Empty ETA result
+        return ['暫時未能提供到站時間預報🙇‍♀️']
+      }
+
       let currentTime = moment().seconds(0)
 
       for (const eta of res.data.response) {
         let mETA = moment(eta.t, 'HH:mm')
 
         if (!mETA.isValid()) {
+          // Response is text message instead of time
           etas.push(eta.t)
         }
         else if (mETA.isAfter(currentTime)) {
-          // The bus has not passed
+          // The bus has not left the stop
           etas.push(mETA.format('HH:mm'))
         }
       }
