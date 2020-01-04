@@ -515,13 +515,16 @@ async function getETA(company, options) {
       let currentTime = moment().seconds(0)
 
       for (const eta of res.data.response) {
+        if (eta.t.includes('預定班次')) {
+          etas.push(eta.t)
+        }
+
         let mETA = moment(eta.t, 'HH:mm')
 
         if (!mETA.isValid()) {
           // Response is text message instead of time
           etas.push(eta.t)
-        }
-        else if (mETA.isAfter(currentTime)) {
+        } else if (mETA.isAfter(currentTime)) {
           // The bus has not left the stop
           etas.push(mETA.format('HH:mm'))
         }
