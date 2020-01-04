@@ -1,16 +1,17 @@
 require('dotenv').config()
-require('moment/locale/en-gb');
+require('moment/locale/en-gb')
 require('./data/routes.json')
 require('./data/routes-NLB.json')
 require('./data/companies.json')
 const fs = require('fs')
 const express = require('express')
 const axios = require('axios')
-const moment = require('moment');
+const moment = require('moment')
 const Telegraf = require('telegraf')
 const Markup = require('telegraf/markup')
 const session = require('telegraf/session')
 const Stage = require('telegraf/stage')
+const { performance } = require('perf_hooks');
 
 const CHECK_CIRCULAR_ACTION = '00'
 const DIRECTION_ACTION = '01'
@@ -23,9 +24,15 @@ const STOPS_ACTION_REGEX = new RegExp(`^${STOPS_ACTION},`)
 const ETA_ACTION_REGEX = new RegExp(`^${ETA_ACTION},`)
 
 const TOKEN = process.env.API_KEY
-const scene = new Telegraf.BaseScene('eta');
+const scene = new Telegraf.BaseScene('eta')
 
-scene.enter(ctx => ctx.reply('請輸入路線號碼🔢'));
+// Take care of KMB & LWB response special encoding on some Chinese characters
+const transformResponse = [res => {
+  res = res.replace(/\ue473/g, '邨').replace(/\ue05e/g, '匯')
+  return JSON.parse(res)
+}]
+
+scene.enter(ctx => ctx.reply('請輸入路線號碼🔢'))
 
 scene.command('start', ctx => ctx.scene.enter('eta'))
 scene.command('contribute', ctx => ctx.replyWithMarkdown(
@@ -50,13 +57,13 @@ scene.hears(/[A-Za-z0-9]*[0-9][A-Za-z0-9]*/g, async ctx => {
 scene.action(CHECK_CIRCULAR_ACTION_REGEX, async ctx => {
   const [, company, route] = ctx.update.callback_query.data.split(',')
   await checkCircular(ctx, company, route)
-});
+})
 
 // Ask for the route direction
 scene.action(DIRECTION_ACTION_REGEX, async ctx => {
   const [, company, route] = ctx.update.callback_query.data.split(',')
   await askDirection(ctx, company, route)
-});
+})
 
 // List all stops of a route with given direction
 scene.action(STOPS_ACTION_REGEX, async ctx => {
@@ -79,7 +86,7 @@ scene.action(STOPS_ACTION_REGEX, async ctx => {
       await askStops(ctx, company, route, { bound, serviceType })
       break
   }
-});
+})
 
 // Get the ETA
 scene.action(ETA_ACTION_REGEX, async ctx => {
@@ -135,7 +142,7 @@ scene.action(ETA_ACTION_REGEX, async ctx => {
   }
 
   ctx.reply(str)
-});
+})
 
 scene.use(ctx => ctx.reply('無此路線❌'))
 
@@ -219,7 +226,7 @@ async function checkCircular(ctx, company, route) {
         // Circular
         await askStops(ctx, company, route, {})
       } else {
-        console.error(`Can't find information of route ${route}`);
+        console.error(`Can't find information of route ${route}`)
         ctx.reply('無法找到此路線資料❌')
       }
 
@@ -356,6 +363,7 @@ async function getRoute(company, route) {
     case 'LWB':
       function getRouteBound(bound) {
         return axios.get('http://search.kmb.hk/kmbwebsite/Function/FunctionRequest.ashx', {
+          transformResponse,
           params: {
             action: 'getSpecialRoute',
             route,
@@ -402,6 +410,7 @@ async function getRouteStop(company, route, options) {
       let { bound, serviceType } = options
       url = 'http://search.kmb.hk/KMBWebSite/Function/FunctionRequest.ashx'
       res = await axios.get(url, {
+        transformResponse,
         params: {
           action: 'getstops',
           route,
