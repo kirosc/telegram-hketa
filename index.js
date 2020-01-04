@@ -124,9 +124,13 @@ scene.action(ETA_ACTION_REGEX, async ctx => {
       let bound = option1, serviceType = option2, stop_seq = option3
       etas = await getETA(company, { route, bound, serviceType, stop_seq })
 
-      str = '預計到站時間如下⌚'
-      for (const [i, eta] of etas.entries()) {
-        str += `\n${i + 1}. ${eta}`
+      if (etas[0].includes(':')) {
+        str = '預計到站時間如下⌚'
+        for (const [i, eta] of etas.entries()) {
+          str += `\n${i + 1}. ${eta}`
+        }
+      } else {
+        str = etas[0]
       }
   }
 
@@ -497,10 +501,14 @@ async function getETA(company, options) {
 
       for (const eta of res.data.response) {
         let mETA = moment(eta.t, 'HH:mm')
-        // The bus has not passed
-        if (mETA.isAfter(currentTime))
+
+        if (!mETA.isValid()) {
+          etas.push(eta.t)
+        }
+        else if (mETA.isAfter(currentTime)) {
+          // The bus has not passed
           etas.push(mETA.format('HH:mm'))
-        
+        }
       }
   }
   return etas
