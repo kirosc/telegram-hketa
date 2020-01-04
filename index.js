@@ -487,7 +487,7 @@ async function getETA(company, options) {
       let data = res.data.data
 
       for (const { eta } of data) {
-        const etaHKTime = moment(eta).utcOffset('+0800').format('LTS')
+        const etaHKTime = moment(eta).utcOffset(8).format('LTS')
         etas.push(etaHKTime)
       }
 
@@ -512,23 +512,8 @@ async function getETA(company, options) {
         return ['暫時未能提供到站時間預報\ud83d\ude47']
       }
 
-      let currentTime = moment().seconds(0)
-
-      for (const eta of res.data.response) {
-        if (eta.t.includes('預定班次')) {
-          etas.push(eta.t)
-        }
-
-        let mETA = moment(eta.t, 'HH:mm')
-
-        if (!mETA.isValid()) {
-          // Response is text message instead of time
-          etas.push(eta.t)
-        } else if (mETA.isAfter(currentTime)) {
-          // The bus has not left the stop
-          etas.push(mETA.format('HH:mm'))
-        }
-      }
+      for (const eta of res.data.response)
+        etas.push(eta.t)
   }
   return etas
 }
