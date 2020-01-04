@@ -509,7 +509,9 @@ async function getETA(company, options) {
 
       if (!res.data.hasOwnProperty('response')) {
         // Empty ETA result
-        return ['暫時未能提供到站時間預報🙇‍♀️']
+        console.log(res.data);
+
+        return ['暫時未能提供到站時間預報\ud83d\ude47']
       }
 
       let currentTime = moment().seconds(0)
@@ -523,9 +525,13 @@ async function getETA(company, options) {
         }
         else if (mETA.isAfter(currentTime)) {
           // The bus has not left the stop
+          console.log(mETA.format('HH:mm'));
+          
           etas.push(mETA.format('HH:mm'))
         }
       }
+      
+      console.log(etas);
   }
   return etas
 }
