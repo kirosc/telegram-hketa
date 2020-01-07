@@ -11,7 +11,7 @@ const Telegraf = require('telegraf')
 const Markup = require('telegraf/markup')
 const session = require('telegraf/session')
 const Stage = require('telegraf/stage')
-const { performance } = require('perf_hooks');
+const Sentry = require('@sentry/node');
 
 const CHECK_CIRCULAR_ACTION = '00'
 const DIRECTION_ACTION = '01'
@@ -23,8 +23,16 @@ const DIRECTION_ACTION_REGEX = new RegExp(`^${DIRECTION_ACTION},`)
 const STOPS_ACTION_REGEX = new RegExp(`^${STOPS_ACTION},`)
 const ETA_ACTION_REGEX = new RegExp(`^${ETA_ACTION},`)
 
-const TOKEN = process.env.API_KEY
+const TG_TOKEN = process.env.TG_KEY
+const SENTRY_TOKEN = process.env.SENTRY_KEY
 const scene = new Telegraf.BaseScene('eta')
+
+// Error tracking
+Sentry.init({ dsn: `https://${SENTRY_TOKEN}@sentry.io/1873982` })
+axios.interceptors.response.use(null, function (err) {
+  Sentry.captureException(err);
+  console.error(err)
+})
 
 // Take care of KMB & LWB response special encoding on some Chinese characters
 const transformResponse = [res => {
@@ -146,7 +154,7 @@ scene.action(ETA_ACTION_REGEX, async ctx => {
 
 scene.use(ctx => ctx.reply('無此路線❌'))
 
-const bot = new Telegraf(TOKEN)
+const bot = new Telegraf(TG_TOKEN)
 const stage = new Stage([scene])
 
 bot.use(session())

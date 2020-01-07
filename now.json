@@ -2,7 +2,8 @@
     "version": 2,
     "name": "tg-hketa",
     "env": {
-        "API_KEY": "@api_key"
+        "TG_KEY": "@tg_key",
+        "SENTRY_KEY": "@sentry_key"
     },
     "builds": [
         { "src": "*.js", "use": "@now/node" }

@@ -1,6 +1,7 @@
 # Telegram Bot to Check Hong Kong Public Transport ETA
 ![GitHub](https://img.shields.io/github/license/kirosc/tg-hketa)
 [![Build Status](https://travis-ci.com/kirosc/tg-hketa.svg?branch=master)](https://travis-ci.com/kirosc/tg-hketa)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fkirosc%2Ftg-hketa.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fkirosc%2Ftg-hketa?ref=badge_shield)
 
 ## Introduction
 A telegram bot to check the Hong Kong public transport's estimated time of arrival. Currently support Citybus(城巴), New World First Bus(新巴), The Kowloon Motor Bus(九巴), Long Win Bus(龍運巴士) and New Lantao Bus(新大嶼山巴士).
