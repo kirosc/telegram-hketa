@@ -197,12 +197,12 @@ app.use(requestIp.mw())
 app.use(function (req, res, next) {
   const ip = req.clientIp
   console.log('\n' + ip)
-  next()
   const params = new GeolocationParams()
-  params.setIPAddress('91.108.6.121')
+  params.setIPAddress(ip)
   params.setFields('geo')
-
   ipg.getGeolocation(({ city, country_name }) => console.log(`${ city }, ${ country_name }`), params)
+
+  next()
 })
 app.use(bot.webhookCallback('/message'))
 
