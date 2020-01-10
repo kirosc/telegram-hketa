@@ -6,12 +6,16 @@ require('./data/companies.json')
 const fs = require('fs')
 const express = require('express')
 const axios = require('axios')
+const ua = require('universal-analytics')
 const moment = require('moment')
 const Telegraf = require('telegraf')
 const Markup = require('telegraf/markup')
 const session = require('telegraf/session')
 const Stage = require('telegraf/stage')
-const Sentry = require('@sentry/node');
+const Sentry = require('@sentry/node')
+const IPGeolocationAPI = require('ip-geolocation-api-javascript-sdk')
+const GeolocationParams = require('ip-geolocation-api-javascript-sdk/GeolocationParams')
+const requestIp = require('request-ip')
 
 const CHECK_CIRCULAR_ACTION = '00'
 const DIRECTION_ACTION = '01'
@@ -23,16 +27,24 @@ const DIRECTION_ACTION_REGEX = new RegExp(`^${DIRECTION_ACTION},`)
 const STOPS_ACTION_REGEX = new RegExp(`^${STOPS_ACTION},`)
 const ETA_ACTION_REGEX = new RegExp(`^${ETA_ACTION},`)
 
+const env = process.env.NODE_ENV || 'devlopment'
 const TG_TOKEN = process.env.TG_KEY
 const SENTRY_TOKEN = process.env.SENTRY_KEY
+const GA_TID = process.env.GA_TID
+const IPG_TOKEN = process.env.IPG_KEY
 const scene = new Telegraf.BaseScene('eta')
+const ipg = new IPGeolocationAPI(IPG_TOKEN, false);
+
+let gaParams = {}
 
 // Error tracking
-Sentry.init({ dsn: `https://${SENTRY_TOKEN}@sentry.io/1873982` })
-axios.interceptors.response.use(null, function (err) {
-  Sentry.captureException(err);
-  console.error(err)
-})
+if (env === 'production') {
+  Sentry.init({ dsn: `https://${SENTRY_TOKEN}@sentry.io/1873982` })
+  axios.interceptors.response.use(null, function (err) {
+    Sentry.captureException(err);
+    console.error(err)
+  })
+}
 
 // Take care of KMB & LWB response special encoding on some Chinese characters
 const transformResponse = [res => {
@@ -59,6 +71,8 @@ scene.hears(/[A-Za-z0-9]*[0-9][A-Za-z0-9]*/g, async ctx => {
   } else {
     await checkCircular(ctx, companies[0], route)
   }
+
+  setGAParams('bus', 'start')
 })
 
 // Check if the route is circular
@@ -150,6 +164,9 @@ scene.action(ETA_ACTION_REGEX, async ctx => {
   }
 
   ctx.reply(str)
+  setGAParams('bus', 'company', company)
+  sendToGA(ctx)
+  setGAParams('bus', 'ETA', route)
 })
 
 scene.use(ctx => ctx.reply('無此路線❌'))
@@ -158,6 +175,11 @@ const bot = new Telegraf(TG_TOKEN)
 const stage = new Stage([scene])
 
 bot.use(session())
+bot.use(async (ctx, next) => {
+  // Call the next middleware first
+  await next()
+  sendToGA(ctx)
+})
 bot.use(stage.middleware())
 
 bot.start(ctx => ctx.scene.enter('eta'))
@@ -170,6 +192,18 @@ bot.on('message', ctx => {
 
 const app = express()
 
+app.use(requestIp.mw())
+
+app.use(function (req, res, next) {
+  const ip = req.clientIp
+  console.log('\n' + ip)
+  next()
+  const params = new GeolocationParams()
+  params.setIPAddress('91.108.6.121')
+  params.setFields('geo')
+
+  ipg.getGeolocation(({ city, country_name }) => console.log(`${ city }, ${ country_name }`), params)
+})
 app.use(bot.webhookCallback('/message'))
 
 // Finally, start our server
@@ -564,4 +598,20 @@ function buildStopsKeyboard(action, company, route, names, stopIds, options) {
   }
 
   return keyboard
+}
+
+// Set the Google Analytics collect parameters
+function setGAParams(ec, ea, el, ev) {
+  gaParams = { ec, ea, el, ev }
+}
+
+// Send usage data to GA
+function sendToGA(ctx) {
+  if (Object.entries(gaParams).length !== 0) {
+    let request = ctx.update.message || ctx.update.callback_query
+    let userid = request.from.id
+    let user = ua(GA_TID, userid, { strictCidFormat: false }) // Using TG UID instead of a UUID
+    user.event(gaParams).send()
+    gaParams = {}
+  }
 }
