@@ -1,5 +1,7 @@
 {
   "AEL": {
+    "tc": "機場快綫",
+    "en": "Airport Express",
     "stations": [
       {
         "code": "HOK",
@@ -29,6 +31,8 @@
     ]
   },
   "TCL": {
+    "tc": "東涌綫",
+    "en": "Tung Chung line",
     "stations": [
       {
         "code": "HOK",
@@ -73,6 +77,8 @@
     ]
   },
   "WRL": {
+    "tc": "西鐵綫",
+    "en": "West Rail line",
     "stations": [
       {
         "code": "HUH",
@@ -137,6 +143,8 @@
     ]
   },
   "TKL": {
+    "tc": "將軍澳綫",
+    "en": "Tseung Kwan O line",
     "stations": [
       {
         "code": "NOP",
