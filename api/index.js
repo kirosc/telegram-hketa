@@ -13,6 +13,7 @@ const Sentry = require('@sentry/node')
 const constants = require('../lib/constants')
 const buildKeyboard = require('../lib/keyboard')
 const { readJSON } = require('../lib/io')
+const { isValidRoute } = require('../lib/helper')
 
 const scene = new Telegraf.BaseScene('eta')
 
@@ -33,28 +34,17 @@ const transformResponse = [res => {
   return JSON.parse(res)
 }]
 
-scene.enter(ctx => ctx.reply('請輸入路線號碼🔢'))
+scene.enter(ctx => readRoute(ctx))
 
-scene.command('start', ctx => ctx.scene.enter('eta'))
+scene.command('start', ctx => ctx.reply('請輸入巴士路線號碼🔢'))
+
 scene.command('contribute', ctx => ctx.replyWithMarkdown(
   `Make this bot better!
 [Open Source Project](https://github.com/kirosc/tg-hketa)`
 ))
 
-scene.hears(/[A-Za-z0-9]*[0-9][A-Za-z0-9]*/g, async ctx => {
-  const route = ctx.update.message.text.toUpperCase()
-  const companies = isValidRoute(route)
-
-  if (companies.length > 1) {
-    await askCompany(ctx, companies, route)
-  } else if (companies.length === 0) {
-    ctx.reply('無此路線❌')
-  } else {
-    await checkCircular(ctx, companies[0], route)
-  }
-
-  setGAParams('bus', 'start')
-})
+// If it is similar to route number format
+scene.hears(/[A-Za-z0-9]*[0-9][A-Za-z0-9]*/g, ctx => readRoute(ctx))
 
 // Check if the route is circular
 scene.action(constants.CHECK_CIRCULAR_ACTION_REGEX, async ctx => {
@@ -163,13 +153,11 @@ bot.use(async (ctx, next) => {
 })
 bot.use(stage.middleware())
 
-bot.start(ctx => ctx.scene.enter('eta'))
+bot.start(ctx => ctx.reply('請輸入巴士路線號碼🔢'))
 bot.command('contribute', ctx => ctx.replyWithMarkdown(
   `Make this bot better!
 [Open Source Project](https://github.com/kirosc/tg-hketa)`))
-bot.on('message', ctx => {
-  ctx.reply('輸入 /start 開始查詢')
-})
+bot.on('message', ctx => ctx.scene.enter('eta'))
 
 const app = express()
 
@@ -187,6 +175,23 @@ function askCompany(ctx, companies, route) {
     '請選擇巴士公司🚍',
     Markup.inlineKeyboard(keyboard).extra()
   )
+}
+
+async function readRoute(ctx) {
+  const route = ctx.update.message.text.toUpperCase()
+  const companies = isValidRoute(route)
+
+  if (!companies) {
+    ctx.reply('請輸入巴士路線號碼🔢')
+  } else if (!companies.length) {
+    ctx.reply('無此路線❌')
+  } else if (companies.length > 1) {
+    askCompany(ctx, companies, route)
+  } else {
+    await checkCircular(ctx, companies[0], route)
+  }
+
+  setGAParams('bus', 'start')
 }
 
 // Check if it is a circular route
@@ -291,19 +296,6 @@ async function askStops(ctx, company, route, options) {
     Markup.inlineKeyboard(keyboard)
       .extra()
   )
-}
-
-// Check if the route exists can return the company code
-function isValidRoute(route) {
-  if (/[A-Za-z0-9]*[0-9][A-Za-z0-9]*/.test(route)) {
-    let routes = readJSON('routes')
-    let companies = []
-    for (company in routes) {
-      if (routes[company].includes(route))
-        companies.push(company)
-    }
-    return companies
-  }
 }
 
 // Get the route information, like origin and destination
