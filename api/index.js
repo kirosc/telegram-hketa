@@ -1,9 +1,5 @@
 require('dotenv').config()
 require('moment/locale/en-gb')
-require('../data/routes.json')
-require('../data/routes-NLB.json')
-require('../data/companies.json')
-const fs = require('fs')
 const express = require('express')
 const axios = require('axios')
 const ua = require('universal-analytics')
@@ -14,27 +10,17 @@ const session = require('telegraf/session')
 const Stage = require('telegraf/stage')
 const Sentry = require('@sentry/node')
 
-const CHECK_CIRCULAR_ACTION = '00'
-const DIRECTION_ACTION = '01'
-const STOPS_ACTION = '02'
-const ETA_ACTION = '03'
+const constants = require('../lib/constants')
+const buildKeyboard = require('../lib/keyboard')
+const { readJSON } = require('../lib/io')
 
-const CHECK_CIRCULAR_ACTION_REGEX = new RegExp(`^${CHECK_CIRCULAR_ACTION},`)
-const DIRECTION_ACTION_REGEX = new RegExp(`^${DIRECTION_ACTION},`)
-const STOPS_ACTION_REGEX = new RegExp(`^${STOPS_ACTION},`)
-const ETA_ACTION_REGEX = new RegExp(`^${ETA_ACTION},`)
-
-const env = process.env.NODE_ENV || 'devlopment'
-const TG_TOKEN = process.env.TG_KEY
-const SENTRY_TOKEN = process.env.SENTRY_KEY
-const GA_TID = process.env.GA_TID
 const scene = new Telegraf.BaseScene('eta')
 
 let gaParams = {}
 
 // Error tracking
-if (env === 'production') {
-  Sentry.init({ dsn: `https://${SENTRY_TOKEN}@sentry.io/1873982` })
+if (constants.ENV === 'production') {
+  Sentry.init({ dsn: `https://${constants.SENTRY_TOKEN}@sentry.io/1873982` })
   axios.interceptors.response.use(null, function (err) {
     Sentry.captureException(err);
     console.error(err)
@@ -71,19 +57,19 @@ scene.hears(/[A-Za-z0-9]*[0-9][A-Za-z0-9]*/g, async ctx => {
 })
 
 // Check if the route is circular
-scene.action(CHECK_CIRCULAR_ACTION_REGEX, async ctx => {
+scene.action(constants.CHECK_CIRCULAR_ACTION_REGEX, async ctx => {
   const [, company, route] = ctx.update.callback_query.data.split(',')
   await checkCircular(ctx, company, route)
 })
 
 // Ask for the route direction
-scene.action(DIRECTION_ACTION_REGEX, async ctx => {
+scene.action(constants.DIRECTION_ACTION_REGEX, async ctx => {
   const [, company, route] = ctx.update.callback_query.data.split(',')
   await askDirection(ctx, company, route)
 })
 
 // List all stops of a route with given direction
-scene.action(STOPS_ACTION_REGEX, async ctx => {
+scene.action(constants.STOPS_ACTION_REGEX, async ctx => {
   const [, company, route, option1, option2] = ctx.update.callback_query.data.split(',')
 
   switch (company) {
@@ -106,7 +92,7 @@ scene.action(STOPS_ACTION_REGEX, async ctx => {
 })
 
 // Get the ETA
-scene.action(ETA_ACTION_REGEX, async ctx => {
+scene.action(constants.ETA_ACTION_REGEX, async ctx => {
   const [, company, route, option1, option2, option3] = ctx.update.callback_query.data.split(',')
   let etas
   let str = '沒有到站時間預報⛔'
@@ -166,7 +152,7 @@ scene.action(ETA_ACTION_REGEX, async ctx => {
 
 scene.use(ctx => ctx.reply('無此路線❌'))
 
-const bot = new Telegraf(TG_TOKEN)
+const bot = new Telegraf(constants.TG_TOKEN)
 const stage = new Stage([scene])
 
 bot.use(session())
@@ -194,18 +180,8 @@ app.listen(3000, function () {
   console.log('Telegram app listening on port 3000!')
 })
 
-async function askCompany(ctx, companies, route) {
-  let companyNames = readJSON('companies')
-  let keyboard = []
-
-  for (company of companies) {
-    keyboard.push(
-      {
-        text: companyNames[company].tc_name,
-        callback_data: `${CHECK_CIRCULAR_ACTION},${company},${route}`
-      }
-    )
-  }
+function askCompany(ctx, companies, route) {
+  const keyboard = buildKeyboard.companies(companies, route)
 
   ctx.reply(
     '請選擇巴士公司🚍',
@@ -260,53 +236,21 @@ async function checkCircular(ctx, company, route) {
 }
 
 async function askDirection(ctx, company, route) {
-  let keyboard = []
-  let routes, callback
+  let keyboard, routes
 
   switch (company) {
     case 'NLB':
+    case 'KMB':
+    case 'LWB':
       routes = await getRoute(company, route)
-      callback = `${STOPS_ACTION},${company},${route}`
-
-      for (route of routes) {
-        const { routeName_c, routeId } = route
-        keyboard.push([
-          { text: routeName_c, callback_data: `${callback},${routeId}` }
-        ])
-      }
 
       break
     case 'CTB':
     case 'NWFB':
-      let { orig_tc, dest_tc } = await getRoute(company, route)
-      callback = `${STOPS_ACTION},${company},${route}`
-      let orig = orig_tc
-      let dest = dest_tc
-      let inboundCallback = callback + ',inbound'
-      let outboundCallback = callback + ',outbound'
-
-      keyboard = [
-        { text: orig, callback_data: inboundCallback },
-        { text: dest, callback_data: outboundCallback }
-      ]
-
-      break
-    case 'KMB':
-    case 'LWB':
-      routes = await getRoute(company, route)
-      callback = `${STOPS_ACTION},${company},${route}`
-
-      for (const route of routes) {
-        let text = `${route.Origin_CHI} > ${route.Destination_CHI}`
-        let callback_data = callback + `,${route.Bound},${route.ServiceType.trim()}`
-
-        if (route.Desc_CHI !== '循環線' && route.Desc_CHI) {
-          text += ' - ' + route.Desc_CHI
-        }
-
-        keyboard.push([{ text, callback_data }])
-      }
+      routes = { orig_tc, dest_tc } = await getRoute(company, route)
   }
+
+  keyboard = buildKeyboard.direction(company, route, routes)
 
   ctx.reply(
     '請選擇乘搭方向↔',
@@ -320,14 +264,14 @@ async function askStops(ctx, company, route, options) {
   switch (company) {
     case 'NLB':
       [stopNames, stopIds] = await getRouteStop(company, route, options)
-      keyboard = buildStopsKeyboard(ETA_ACTION, company, route, stopNames, stopIds, options)
+      keyboard = buildKeyboard.stops(constants.ETA_ACTION, company, route, stopNames, stopIds, options)
 
       break
     case 'CTB':
     case 'NWFB':
       stopIds = await getRouteStop(company, route, options)
       stopNames = await getStopsName(stopIds)
-      keyboard = buildStopsKeyboard(ETA_ACTION, company, route, stopNames, stopIds, options)
+      keyboard = buildKeyboard.stops(constants.ETA_ACTION, company, route, stopNames, stopIds, options)
 
       break
     case 'KMB':
@@ -337,7 +281,7 @@ async function askStops(ctx, company, route, options) {
       for (const idx of stopNames.keys())
         stopIds.push(idx)
 
-      keyboard = buildStopsKeyboard(ETA_ACTION, company, route, stopNames, stopIds, options)
+      keyboard = buildKeyboard.stops(constants.ETA_ACTION, company, route, stopNames, stopIds, options)
 
       break
   }
@@ -347,17 +291,6 @@ async function askStops(ctx, company, route, options) {
     Markup.inlineKeyboard(keyboard)
       .extra()
   )
-}
-
-// Get the JSON data
-function readJSON(file) {
-  try {
-    const json = fs.readFileSync(`./data/${file}.json`, 'utf8')
-    return JSON.parse(json)
-  } catch (err) {
-    console.log("File read failed:", err)
-    return
-  }
 }
 
 // Check if the route exists can return the company code
@@ -543,46 +476,6 @@ async function getETA(company, options) {
   return etas
 }
 
-function buildStopsKeyboard(action, company, route, names, stopIds, options) {
-  let keyboard = []
-  let lastStop, callback
-
-  if (names.length % 2 !== 0)
-    lastStop = names.pop()
-
-  switch (company) {
-    case 'NLB':
-      callback = `${action},${company},${route},${options.routeId}`
-      break
-    case 'CTB':
-    case 'NWFB':
-      callback = `${action},${company},${route},${options.dir}`
-      break
-    case 'KMB':
-    case 'LWB':
-      callback = `${action},${company},${route},${options.bound || ''},${options.serviceType || ''}`
-      break
-  }
-
-  for (let i = 0; i < names.length; i += 2) {
-    const callback1 = callback + `,${stopIds[i]}`
-    const callback2 = callback + `,${stopIds[i + 1]}`
-
-    const button = [
-      { text: names[i], callback_data: callback1 },
-      { text: names[i + 1], callback_data: callback2 }
-    ]
-    keyboard.push(button)
-  }
-
-  if (lastStop) {
-    const callback3 = `${callback},${stopIds.pop()}`
-    keyboard.push([{ text: lastStop, callback_data: callback3 }])
-  }
-
-  return keyboard
-}
-
 // Set the Google Analytics collect parameters
 function setGAParams(ec, ea, el, ev) {
   gaParams = { ec, ea, el, ev }
@@ -593,7 +486,7 @@ function sendToGA(ctx) {
   if (Object.entries(gaParams).length !== 0) {
     let request = ctx.update.message || ctx.update.callback_query
     let userid = request.from.id
-    let user = ua(GA_TID, userid, { strictCidFormat: false }) // Using TG UID instead of a UUID
+    let user = ua(constants.GA_TID, userid, { strictCidFormat: false }) // Using TG UID instead of a UUID
     user.event(gaParams).send()
     gaParams = {}
   }
