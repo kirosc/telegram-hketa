@@ -9,7 +9,7 @@
   "scripts": {
     "start": "node index.js",
     "prod": "now --prod --token=$NOW_TOKEN",
-    "dev": "now dev",
+    "local": "now dev",
     "updateRoutes": "node utils/get-routes-NLB.js && node utils/get-routes.js"
   },
   "keywords": [
@@ -29,10 +29,8 @@
     "body-parser": "^1.19.0",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
-    "ip-geolocation-api-javascript-sdk": "^1.0.7",
     "moment": "^2.24.0",
     "now": "^16.7.2",
-    "request-ip": "^2.1.3",
     "telegraf": "^3.33.3",
     "universal-analytics": "^0.4.20",
     "xml-js": "^1.6.11"
