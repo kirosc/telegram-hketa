@@ -9,7 +9,7 @@
   "scripts": {
     "start": "node index.js",
     "prod": "now --prod --token=$NOW_TOKEN",
-    "dev": "now dev",
+    "local": "now dev",
     "updateRoutes": "node utils/get-routes-NLB.js && node utils/get-routes.js"
   },
   "keywords": [
