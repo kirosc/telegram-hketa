@@ -19,7 +19,7 @@ now secrets add api_key <secret-value>
 
 Run locally
 ```
-npm run dev
+npm run local
 ```
 
 Deploy to zeit.co

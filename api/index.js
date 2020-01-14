@@ -13,9 +13,6 @@ const Markup = require('telegraf/markup')
 const session = require('telegraf/session')
 const Stage = require('telegraf/stage')
 const Sentry = require('@sentry/node')
-const IPGeolocationAPI = require('ip-geolocation-api-javascript-sdk')
-const GeolocationParams = require('ip-geolocation-api-javascript-sdk/GeolocationParams')
-const requestIp = require('request-ip')
 
 const CHECK_CIRCULAR_ACTION = '00'
 const DIRECTION_ACTION = '01'
@@ -31,9 +28,7 @@ const env = process.env.NODE_ENV || 'devlopment'
 const TG_TOKEN = process.env.TG_KEY
 const SENTRY_TOKEN = process.env.SENTRY_KEY
 const GA_TID = process.env.GA_TID
-const IPG_TOKEN = process.env.IPG_KEY
 const scene = new Telegraf.BaseScene('eta')
-const ipg = new IPGeolocationAPI(IPG_TOKEN, false);
 
 let gaParams = {}
 
@@ -192,18 +187,6 @@ bot.on('message', ctx => {
 
 const app = express()
 
-app.use(requestIp.mw())
-
-app.use(function (req, res, next) {
-  const ip = req.clientIp
-  console.log('\n' + ip)
-  const params = new GeolocationParams()
-  params.setIPAddress(ip)
-  params.setFields('geo')
-  ipg.getGeolocation(({ city, country_name }) => console.log(`${ city }, ${ country_name }`), params)
-
-  next()
-})
 app.use(bot.webhookCallback('/message'))
 
 // Finally, start our server
