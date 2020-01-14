@@ -31,7 +31,7 @@
     "express": "^4.17.1",
     "moment": "^2.24.0",
     "now": "^16.7.2",
-    "telegraf": "^3.33.3",
+    "telegraf": "^3.35.0",
     "universal-analytics": "^0.4.20",
     "xml-js": "^1.6.11"
   },

@@ -1,7 +1,6 @@
 require('dotenv').config()
 const express = require('express')
 const axios = require('axios')
-const ua = require('universal-analytics')
 const Telegraf = require('telegraf')
 const session = require('telegraf/session')
 const Stage = require('telegraf/stage')
