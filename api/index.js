@@ -27,7 +27,17 @@ bot.command('contribute', ctx => ctx.replyWithMarkdown(
   `Make this bot better!
 [Open Source Project](https://github.com/kirosc/tg-hketa)`))
 
-bot.start(ctx => ctx.reply('請輸入巴士路線號碼🔢'))
+
+bot.command('help', ctx => ctx.replyWithMarkdown(
+  `*可使用的指令*
+/bus - 查詢巴士路線
+/mtr - 查詢港鐵四條路線
+/contribute - 一同開發此bot`))
+
+bot.start(ctx => ctx.replyWithMarkdown(
+  `直接輸入巴士路線🔢
+或輸入 /help 查看可用指令`
+))
 
 bot.use(session())
 bot.use(stage.middleware())

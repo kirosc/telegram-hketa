@@ -15,20 +15,31 @@ Telegram Bot to Check Hong Kong Public Transport ETA<br>
 
 ## Introduction
 
-A [**Telegram**](https://telegram.org) bot to check the Hong Kong public transport's estimated time of arrival. Currently support all franchised buses, including Citybus(城巴), New World First Bus(新巴), The Kowloon Motor Bus(九巴), Long Win Bus(龍運巴士) and New Lantao Bus(新大嶼山巴士).
+A [**Telegram**](https://telegram.org) bot to check the Hong Kong public transport's estimated time of arrival. Currently support metro and all franchised buses, including 
+- MTR(港鐵)
+- Citybus(城巴)
+- New World First Bus(新巴)
+- The Kowloon Motor Bus(九巴)
+- Long Win Bus(龍運巴士)
+- New Lantao Bus(新大嶼山巴士).
 
 Use this bot [@HK_ETA_BOT](https://t.me/HK_ETA_BOT)
 
-### Upcoming Features
+## Planned features
 
-Support checking the ETA of
+- ETA of Tram(電車)
+- Enhance UI
+- Error catching
+- Testing
 
-- Tram(電車)
-- MTR(港鐵)
+## Known bugs
+
+- Please let me know
+
 
 ## Setup
 
-### Environment Variables
+### Environment variables
 
 Eefine a Now Secret to store the Telegram bot API token.
 
