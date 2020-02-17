@@ -7,11 +7,13 @@
         "GA_TID": "@ga_tid",
         "IPG_KEY": "@ipg_key"
     },
-    "builds": [
-        { "src": "*.js", "use": "@now/node" }
-    ],
+    "functions": {
+        "api/*.js": {
+          "memory": 512
+        }
+    },
     "routes": [
-      { "src": "/message", "dest": "/index.js" }
+      { "src": "/message", "dest": "api/index.js" }
     ],
     "regions": ["sin1", "hnd1"]
-}  
+}
