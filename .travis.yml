@@ -9,7 +9,7 @@ branches:
 
 install:
   - npm i
-  - npm i -D now
+  - npm i -g now@16.7.3
 
 script: npm run updateRoutes
 
