@@ -15,5 +15,5 @@
     "routes": [
       { "src": "/message", "dest": "api/index.js" }
     ],
-    "regions": ["sin1", "hnd1"]
+    "regions": ["sin1"]
 }
