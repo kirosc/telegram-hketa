@@ -105,3 +105,6 @@ dist
 
 # Pdf file
 *.pdf
+
+.now
+data/routes*

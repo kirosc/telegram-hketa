@@ -1,11 +1,9 @@
 {
     "version": 2,
-    "name": "tg-hketa",
     "env": {
         "TG_KEY": "@tg_key",
         "SENTRY_KEY": "@sentry_key",
-        "GA_TID": "@ga_tid",
-        "IPG_KEY": "@ipg_key"
+        "GA_TID": "@ga_tid"
     },
     "functions": {
         "api/*.js": {

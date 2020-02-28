@@ -1,13 +1,13 @@
 // Collect and save all routes that supporting ETA checking
-const axios = require('axios')
-const fs = require('fs')
-const convert = require('xml-js')
+const axios = require('axios');
+const fs = require('fs');
+const convert = require('xml-js');
 
-let CTBRoutes = new Set()
-let NWFBRoutes = new Set()
-let NLBRoutes = new Set()
-let KMBRoutes = new Set()
-let LWBRoutes = new Set()
+let CTBRoutes = new Set();
+let NWFBRoutes = new Set();
+let NLBRoutes = new Set();
+let KMBRoutes = new Set();
+let LWBRoutes = new Set();
 
 // CTB
 let promise1 = axios
@@ -15,12 +15,12 @@ let promise1 = axios
     'https://rt.data.gov.hk/v1/transport/citybus-nwfb/route/CTB'
   )
   .then(res => {
-    const routes = res.data.data
+    const routes = res.data.data;
     for ({ route } of routes) {
       // Get ROUTE_NUMBER
-      CTBRoutes.add(route)
+      CTBRoutes.add(route);
     }
-  })
+  });
 
 // NWFB
 let promise2 = axios
@@ -28,12 +28,12 @@ let promise2 = axios
     'https://rt.data.gov.hk/v1/transport/citybus-nwfb/route/NWFB'
   )
   .then(res => {
-    const routes = res.data.data
+    const routes = res.data.data;
     for ({ route } of routes) {
       // Get ROUTE_NUMBER
-      NWFBRoutes.add(route)
+      NWFBRoutes.add(route);
     }
-  })
+  });
 
 // NLB
 let promise3 = axios
@@ -41,12 +41,12 @@ let promise3 = axios
     'https://rt.data.gov.hk/v1/transport/nlb/route.php?action=list'
   )
   .then(res => {
-    const { routes } = res.data
+    const { routes } = res.data;
     for ({ routeNo } of routes) {
       // Get ROUTE_NUMBER
-      NLBRoutes.add(routeNo)
+      NLBRoutes.add(routeNo);
     }
-  })
+  });
 
 // KMB
 let promise4 = axios
@@ -55,17 +55,18 @@ let promise4 = axios
   )
   .then(res => {
     let routes = convert.xml2json(res.data, { compact: true, spaces: 4, ignoreDeclaration: true, textKey: "text" });
-    routes = JSON.parse(routes)
-    routes = routes.ROUTE_BUS.ROUTE
+    routes = JSON.parse(routes);
+    
+    routes = routes.dataroot.ROUTE;
 
     for (const route of routes) {
       if (route.COMPANY_CODE.text === 'KMB') {
-        KMBRoutes.add(route.ROUTE_NAMEC.text)
+        KMBRoutes.add(route.ROUTE_NAMEC.text);
       } else if (route.COMPANY_CODE.text === 'LWB') {
-        LWBRoutes.add(route.ROUTE_NAMEC.text)
+        LWBRoutes.add(route.ROUTE_NAMEC.text);
       }
     }
-  })
+  });
 
 Promise.all([promise1, promise2, promise3, promise4]).then(() => {
   const routes = {
@@ -74,7 +75,11 @@ Promise.all([promise1, promise2, promise3, promise4]).then(() => {
     'NLB': Array.from(NLBRoutes),
     'KMB': Array.from(KMBRoutes).sort(),
     'LWB': Array.from(LWBRoutes).sort()
-  }
+  };
 
   fs.writeFileSync('./data/routes.json', JSON.stringify(routes, null, 2), 'utf-8');
 })
+  .catch(err => {
+    console.error(err);
+    process.exit(-1);
+  });
