@@ -56,8 +56,7 @@ let promise4 = axios
   .then(res => {
     let routes = convert.xml2json(res.data, { compact: true, spaces: 4, ignoreDeclaration: true, textKey: "text" });
     routes = JSON.parse(routes);
-    
-    routes = routes.dataroot.ROUTE;
+    routes = routes.ROUTE_BUS.ROUTE;
 
     for (const route of routes) {
       if (route.COMPANY_CODE.text === 'KMB') {
