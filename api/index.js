@@ -7,7 +7,6 @@ const Stage = require('telegraf/stage');
 const Sentry = require('@sentry/node');
 
 const constants = require('../lib/constants');
-
 const busScene = require('../lib/scenes/bus');
 const mtrScene = require('../lib/scenes/mtr');
 

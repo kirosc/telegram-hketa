@@ -107,4 +107,5 @@ dist
 *.pdf
 
 .now
-data/routes*
+data/routes.json
+data/routes-NLB.json
