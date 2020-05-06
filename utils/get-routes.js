@@ -2,6 +2,7 @@
 const axios = require('axios');
 const fs = require('fs');
 const convert = require('xml-js');
+const { readJSON } = require('../lib/io');
 
 let CTBRoutes = new Set();
 let NWFBRoutes = new Set();
@@ -67,13 +68,17 @@ let promise4 = axios
     }
   });
 
+// MTR
+const { MTR } = readJSON('routes-mtr');
+
 Promise.all([promise1, promise2, promise3, promise4]).then(() => {
   const routes = {
     'CTB': Array.from(CTBRoutes),
     'NWFB': Array.from(NWFBRoutes),
     'NLB': Array.from(NLBRoutes),
     'KMB': Array.from(KMBRoutes).sort(),
-    'LWB': Array.from(LWBRoutes).sort()
+    'LWB': Array.from(LWBRoutes).sort(),
+    MTR
   };
 
   fs.writeFileSync('./data/routes.json', JSON.stringify(routes, null, 2), 'utf-8');
