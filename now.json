@@ -3,7 +3,8 @@
     "env": {
         "TG_KEY": "@tg_key",
         "SENTRY_KEY": "@sentry_key",
-        "GA_TID": "@ga_tid"
+        "GA_TID": "@ga_tid",
+        "HKETA_GRAPHQL": "@hketa_graphql"
     },
     "functions": {
         "api/*.js": {
