@@ -16,8 +16,11 @@ Telegram Bot to Check Hong Kong Public Transport ETA<br>
 
 ## Introduction
 
-A [**Telegram**](https://telegram.org) bot to check the Hong Kong public transport's estimated time of arrival. Currently support metro and all franchised buses, including 
+A [**Telegram**](https://telegram.org) bot to check the Hong Kong public transport's estimated time of arrival. Currently support metro, LRT and all franchised buses, including 
 - MTR(港鐵)
+  - Train
+  - Bus
+  - LRT(輕鐵)
 - Citybus(城巴)
 - New World First Bus(新巴)
 - The Kowloon Motor Bus(九巴)
@@ -71,5 +74,6 @@ npm run prod
 - [telegraf](https://github.com/telegraf/telegraf) - Modern Telegram Bot Framework for Node.js
 - [axios](https://github.com/axios/axios) - Promise based HTTP client for the browser and node.js
 - [express](https://github.com/expressjs/express) - Fast, unopinionated, minimalist web framework for node.
+- [express-graphql](https://github.com/graphql/express-graphql) - Create a GraphQL HTTP server with Express.
 - [now](https://github.com/zeit/now) - The easiest way to deploy websites.
 - [DATA.GOV.HK](https://data.gov.hk) - Public sector information.

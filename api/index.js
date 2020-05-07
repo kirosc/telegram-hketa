@@ -5,21 +5,21 @@ const Telegraf = require('telegraf');
 const session = require('telegraf/session');
 const Stage = require('telegraf/stage');
 const Sentry = require('@sentry/node');
-
-const constants = require('../lib/constants');
+const { ENV, SENTRY_TOKEN, TG_TOKEN, TG_DEV_TOKEN, BUS_SCENE_ID, MTR_SCENE_ID } = require('../lib/constants');
 const busScene = require('../lib/scenes/bus');
 const mtrScene = require('../lib/scenes/mtr');
+const { sendMessageToUsers } = require('../lib/helper');
 
 // Error tracking
-if (constants.ENV === 'production') {
-  Sentry.init({ dsn: `https://${constants.SENTRY_TOKEN}@sentry.io/1873982` });
+if (ENV === 'production') {
+  Sentry.init({ dsn: `https://${SENTRY_TOKEN}@sentry.io/1873982` });
   axios.interceptors.response.use(null, function (err) {
     Sentry.captureException(err);
     console.error(err);
   });
 }
 
-const bot = new Telegraf(constants.TG_TOKEN);
+const bot = new Telegraf(ENV === 'production' ? TG_TOKEN : TG_DEV_TOKEN);
 const stage = new Stage([busScene, mtrScene]);
 
 bot.command('contribute', ctx => ctx.replyWithMarkdown(
@@ -41,10 +41,10 @@ bot.start(ctx => ctx.replyWithMarkdown(
 bot.use(session());
 bot.use(stage.middleware());
 
-bot.command('bus', ctx => ctx.scene.enter(constants.BUS_SCENE_ID));
-bot.command('mtr', ctx => ctx.scene.enter(constants.MTR_SCENE_ID));
+bot.command('bus', ctx => ctx.scene.enter(BUS_SCENE_ID));
+bot.command('mtr', ctx => ctx.scene.enter(MTR_SCENE_ID));
 
-bot.on('message', ctx => ctx.scene.enter(constants.BUS_SCENE_ID));
+bot.on('message', ctx => ctx.scene.enter(BUS_SCENE_ID));
 
 const app = express();
 
