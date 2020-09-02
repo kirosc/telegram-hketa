@@ -11,7 +11,7 @@
     "prod": "now --prod --token=$NOW_TOKEN",
     "local": "now dev",
     "updateRoutes": "node utils/get-routes-NLB.js && node utils/get-routes.js",
-    "setWebhook": "curl -F \"url=https://%url%/message\" https://api.telegram.org/bot%KC_DEV_BOT%/setWebhook"
+    "setWebhook": "curl -F \"url=https://$URL/message\" https://api.telegram.org/bot$TOKEN/setWebhook"
   },
   "keywords": [
     "nodejs",

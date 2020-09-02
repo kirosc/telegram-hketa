@@ -5,9 +5,10 @@ const Telegraf = require('telegraf');
 const session = require('telegraf/session');
 const Stage = require('telegraf/stage');
 const Sentry = require('@sentry/node');
-const { ENV, SENTRY_TOKEN, TG_TOKEN, TG_DEV_TOKEN, BUS_SCENE_ID, MTR_SCENE_ID } = require('../lib/constants');
+const { ENV, SENTRY_TOKEN, TG_TOKEN, TG_DEV_TOKEN, BUS_SCENE_ID, MTR_SCENE_ID, LRT_SCENE_ID } = require('../lib/constants');
 const busScene = require('../lib/scenes/bus');
 const mtrScene = require('../lib/scenes/mtr');
+const lrtScene = require('../lib/scenes/lrt');
 const { sendMessageToUsers } = require('../lib/helper');
 
 // Error tracking
@@ -20,7 +21,7 @@ if (ENV === 'production') {
 }
 
 const bot = new Telegraf(ENV === 'production' ? TG_TOKEN : TG_DEV_TOKEN);
-const stage = new Stage([busScene, mtrScene]);
+const stage = new Stage([busScene, mtrScene, lrtScene]);
 
 bot.command('contribute', ctx => ctx.replyWithMarkdown(
   `Make this bot better!
@@ -43,6 +44,7 @@ bot.use(stage.middleware());
 
 bot.command('bus', ctx => ctx.scene.enter(BUS_SCENE_ID));
 bot.command('mtr', ctx => ctx.scene.enter(MTR_SCENE_ID));
+bot.command('lrt', ctx => ctx.scene.enter(LRT_SCENE_ID));
 
 bot.on('message', ctx => ctx.scene.enter(BUS_SCENE_ID));
 
