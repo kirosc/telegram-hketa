@@ -34,7 +34,7 @@
     "graphql": "^15.2.0",
     "graphql-tag": "^2.10.3",
     "moment": "^2.27.0",
-    "node-fetch": "^2.6.0",
+    "node-fetch": "^2.6.1",
     "telegraf": "^3.38.0",
     "universal-analytics": "^0.4.20",
     "xml-js": "^1.6.11"
