@@ -109,3 +109,4 @@ dist
 .now
 data/routes.json
 data/routes-NLB.json
+.vercel
