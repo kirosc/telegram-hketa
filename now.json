@@ -7,12 +7,12 @@
         "HKETA_GRAPHQL": "@hketa_graphql"
     },
     "functions": {
-        "api/*.js": {
+        "api/*.ts": {
           "memory": 512
         }
     },
     "routes": [
-      { "src": "/message", "dest": "api/index.js" }
+      { "src": "/message", "dest": "api/index.ts" }
     ],
     "regions": ["sin1"]
 }
