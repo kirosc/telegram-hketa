@@ -4,7 +4,7 @@ import express, { json } from 'express';
 import { Telegraf, session, Context, Scenes } from 'telegraf';
 import { ENV, TG_TOKEN, TG_DEV_TOKEN } from '../lib/constants';
 import { SceneSession } from 'telegraf/typings/scenes';
-import lrtScene from '@scenes/lrt';
+import { lrtScene, mtrScene } from '@scenes/index';
 import { errorHandler } from '@services/telegram';
 
 interface SessionData extends SceneSession {}
@@ -19,7 +19,7 @@ const bot = new Telegraf<BotContext>(
 );
 
 // Set up scenes
-const stage = new Scenes.Stage<BotContext>([lrtScene], {
+const stage = new Scenes.Stage<BotContext>([lrtScene, mtrScene], {
   ttl: 120,
 });
 
@@ -29,6 +29,7 @@ bot.use(stage.middleware());
 
 // Scenes commands
 bot.command('lrt', async (ctx) => ctx.scene.enter('lrt'));
+bot.command('mtr', async (ctx) => ctx.scene.enter('mtr'));
 
 bot.catch(errorHandler);
 

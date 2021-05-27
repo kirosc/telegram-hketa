@@ -14,7 +14,6 @@ interface Zone {
 }
 
 const zones: Zone[] = readJSON('station-lrt');
-const keyboard = new Map<string, string>(zones.map(({ zone }) => [zone, zone]));
 
 const zoneMenu = new MenuTemplate<BotContext>((ctx) => '選擇區域🚆');
 const stationMenu = new MenuTemplate<BotContext>((ctx) => '選擇車站🚉');
@@ -36,7 +35,7 @@ stationMenu.interact('⬅️ 返回', 'back', {
   },
 });
 
-zoneMenu.chooseIntoSubmenu('lrt-zone', keyboard, stationMenu, {
+zoneMenu.chooseIntoSubmenu('lrt-zone', buildZoneKeyboard, stationMenu, {
   columns: 2,
 });
 zoneMenu.interact('Main Menu', 'leave', {
@@ -53,6 +52,10 @@ scene.enter((ctx) => middleware.replyToContext(ctx));
 scene.leave((ctx) => ctx.reply('Bye'));
 
 scene.use(middleware);
+
+function buildZoneKeyboard(ctx: BotContext) {
+  return new Map<string, string>(zones.map(({ zone }) => [zone, zone]));
+}
 
 /**
  * Build keyboard for stations in a zone
@@ -77,4 +80,4 @@ function buildStationKeyboard(ctx: BotContext) {
   return keyboard;
 }
 
-export default scene;
+export { scene as lrtScene };

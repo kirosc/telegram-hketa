@@ -36,6 +36,7 @@
     "express": "^4.17.1",
     "graphql": "^15.2.0",
     "graphql-tag": "^2.10.3",
+    "luxon": "^1.27.0",
     "module-alias": "^2.2.2",
     "moment": "^2.27.0",
     "node-fetch": "^2.6.1",
@@ -47,6 +48,7 @@
   },
   "devDependencies": {
     "@types/jest": "^26.0.23",
+    "@types/luxon": "^1.26.5",
     "husky": "^6.0.0",
     "jest": "^27.0.1",
     "lint-staged": "^11.0.0",
