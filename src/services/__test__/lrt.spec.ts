@@ -141,6 +141,15 @@ describe('test can getPlatformMessage', () => {
 615 - 元朗 - 1卡 - 4 分鐘
 615P - 兆康 - 1卡 - 11 分鐘`);
   });
+
+  test('Can get end service message', () => {
+    const platform: LRTPlatform = {
+      end_service_status: 1,
+      platform_id: 2,
+    };
+    expect(getPlatformMessage(platform)).toEqual(`月台 - 2
+尾班車已過`);
+  });
 });
 
 describe('test can getRouteMessage', () => {

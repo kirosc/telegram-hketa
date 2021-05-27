@@ -6,7 +6,8 @@ export interface LRTSchedule {
 
 export interface LRTPlatform {
   platform_id: number;
-  route_list: LRTRoute[];
+  route_list?: LRTRoute[];
+  end_service_status?: 0 | 1;
 }
 
 export interface LRTRoute {

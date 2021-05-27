@@ -24,7 +24,7 @@ export function getETA(schedule: LRTSchedule): string {
 
 export function getPlatformMessage(platform: LRTPlatform) {
   const { platform_id: id, route_list } = platform;
-  const routeMessages = route_list.map(getRouteMessage);
+  const routeMessages = route_list?.map(getRouteMessage) ?? ['尾班車已過'];
   return `月台 - ${id}\n${routeMessages.join('\n')}`;
 }
 

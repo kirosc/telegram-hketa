@@ -1,6 +1,7 @@
 import { BotContext } from '@api/index';
 import { readJSON } from '@services/io';
 import { getETA, getSchedule } from '@services/lrt';
+import { createNavButtons } from '@services/telegram';
 import { Scenes } from 'telegraf';
 import { MenuMiddleware, MenuTemplate } from 'telegraf-inline-menu';
 
@@ -18,6 +19,11 @@ const zones: Zone[] = readJSON('station-lrt');
 const zoneMenu = new MenuTemplate<BotContext>((ctx) => '選擇區域🚆');
 const stationMenu = new MenuTemplate<BotContext>((ctx) => '選擇車站🚉');
 
+zoneMenu.chooseIntoSubmenu('lrt-zone', buildZoneKeyboard, stationMenu, {
+  columns: 2,
+});
+zoneMenu.manualRow(createNavButtons());
+
 stationMenu.choose('lrt-station', buildStationKeyboard, {
   do: async (ctx, key) => {
     const stationId = parseInt(key);
@@ -29,21 +35,7 @@ stationMenu.choose('lrt-station', buildStationKeyboard, {
   },
   columns: 2,
 });
-stationMenu.interact('⬅️ 返回', 'back', {
-  do: async () => {
-    return '..';
-  },
-});
-
-zoneMenu.chooseIntoSubmenu('lrt-zone', buildZoneKeyboard, stationMenu, {
-  columns: 2,
-});
-zoneMenu.interact('Main Menu', 'leave', {
-  do: async (ctx) => {
-    await ctx.scene.leave();
-    return true;
-  },
-});
+stationMenu.manualRow(createNavButtons());
 
 const middleware = new MenuMiddleware('/', zoneMenu);
 const scene = new Scenes.BaseScene<BotContext>('lrt');
@@ -80,4 +72,4 @@ function buildStationKeyboard(ctx: BotContext) {
   return keyboard;
 }
 
-export { scene as lrtScene };
+export { scene as lrtScene, zoneMenu as lrtMenu };

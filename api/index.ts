@@ -4,8 +4,9 @@ import express, { json } from 'express';
 import { Telegraf, session, Context, Scenes } from 'telegraf';
 import { ENV, TG_TOKEN, TG_DEV_TOKEN } from '../lib/constants';
 import { SceneSession } from 'telegraf/typings/scenes';
-import { lrtScene, mtrScene } from '@scenes/index';
+import { lrtMenu, mtrMenu } from '@scenes/index';
 import { errorHandler } from '@services/telegram';
+import { MenuMiddleware, MenuTemplate } from 'telegraf-inline-menu';
 
 interface SessionData extends SceneSession {}
 
@@ -18,18 +19,16 @@ const bot = new Telegraf<BotContext>(
   ENV === 'production' ? TG_TOKEN : TG_DEV_TOKEN
 );
 
-// Set up scenes
-const stage = new Scenes.Stage<BotContext>([lrtScene, mtrScene], {
-  ttl: 120,
-});
+const mainMenu = new MenuTemplate<BotContext>((ctx) => '選擇查詢的交通工具🚆');
+
+mainMenu.submenu('輕鐵', 'lrt', lrtMenu);
+mainMenu.submenu('地鐵', 'mtr', mtrMenu);
+
+const menuMiddleware = new MenuMiddleware('/', mainMenu);
+bot.command('start', (ctx) => menuMiddleware.replyToContext(ctx));
 
 bot.use(session());
-// Use scene
-bot.use(stage.middleware());
-
-// Scenes commands
-bot.command('lrt', async (ctx) => ctx.scene.enter('lrt'));
-bot.command('mtr', async (ctx) => ctx.scene.enter('mtr'));
+bot.use(menuMiddleware);
 
 bot.catch(errorHandler);
 
@@ -94,8 +93,6 @@ bot.catch(errorHandler);
 //   `直接輸入巴士路線🔢
 // 或輸入 /help 查看可用指令`
 // ));
-
-bot.start((ctx) => ctx.replyWithMarkdown('hello'));
 
 const app = express();
 app.use(json());

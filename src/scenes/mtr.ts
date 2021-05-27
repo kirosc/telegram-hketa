@@ -1,11 +1,17 @@
 import { BotContext } from '@api/index';
 import { MTRSchedule } from '@interfaces/mtr';
 import { getETA, getLines, getSchedule } from '@services/mtr';
+import { createNavButtons } from '@services/telegram';
 import { Scenes } from 'telegraf';
 import { MenuMiddleware, MenuTemplate } from 'telegraf-inline-menu';
 
 const lineMenu = new MenuTemplate<BotContext>((ctx) => '選擇路綫🚆');
 const stationMenu = new MenuTemplate<BotContext>((ctx) => '選擇車站🚉');
+
+lineMenu.chooseIntoSubmenu('mtr-line', buildLineKeyboard, stationMenu, {
+  columns: 1,
+});
+lineMenu.manualRow(createNavButtons());
 
 stationMenu.choose('mtr-station', buildStationKeyboard, {
   do: async (ctx, key) => {
@@ -25,15 +31,7 @@ stationMenu.choose('mtr-station', buildStationKeyboard, {
   },
   columns: 2,
 });
-stationMenu.interact('⬅️ 返回', 'back', {
-  do: async () => {
-    return '..';
-  },
-});
-
-lineMenu.chooseIntoSubmenu('mtr-line', buildLineKeyboard, stationMenu, {
-  columns: 1,
-});
+stationMenu.manualRow(createNavButtons());
 
 const middleware = new MenuMiddleware('/', lineMenu);
 const scene = new Scenes.BaseScene<BotContext>('mtr');
@@ -77,4 +75,4 @@ function handleMTRError(ctx: BotContext, schedule: MTRSchedule) {
   );
 }
 
-export { scene as mtrScene };
+export { scene as mtrScene, lineMenu as mtrMenu };
