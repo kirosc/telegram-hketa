@@ -8,10 +8,13 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
+    "dev": "NODE_ENV=development ts-node-dev --respawn --watch .",
     "prod": "now --prod --token=$NOW_TOKEN",
     "local": "now dev",
+    "build": "rm -rf dist && tsc",
     "test": "jest",
     "test:watch": "jest --watch",
+    "update:route": "ts-node src/services/routes.ts",
     "updateRoutes": "node utils/get-routes-NLB.js && node utils/get-routes.js",
     "setWebhook": "curl -F \"url=https://$URL/message\" https://api.telegram.org/bot$TOKEN/setWebhook",
     "prepare": "husky install"
@@ -48,13 +51,15 @@
   },
   "devDependencies": {
     "@types/jest": "^26.0.23",
+    "@types/lodash": "^4.14.170",
     "@types/luxon": "^1.26.5",
     "husky": "^6.0.0",
     "jest": "^27.0.1",
     "lint-staged": "^11.0.0",
     "prettier": "^2.3.0",
     "ts-jest": "^27.0.1",
-    "ts-node": "^10.0.0"
+    "ts-node": "^10.0.0",
+    "ts-node-dev": "^1.1.6"
   },
   "lint-staged": {
     "*.{ts,md}": "prettier --write"
