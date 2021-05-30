@@ -6,9 +6,16 @@ import { ENV, TG_TOKEN, TG_DEV_TOKEN } from '../lib/constants';
 import { SceneSession } from 'telegraf/typings/scenes';
 import { lrtMenu, mtrMenu } from '@scenes/index';
 import { errorHandler } from '@services/telegram';
-import { MenuMiddleware, MenuTemplate } from 'telegraf-inline-menu';
+import {
+  getMenuOfPath,
+  MenuMiddleware,
+  MenuTemplate,
+} from 'telegraf-inline-menu';
+import { companyMenu, handleRouteNumber, routeQuestion } from '@scenes/bus';
 
-interface SessionData extends SceneSession {}
+interface SessionData extends SceneSession {
+  companies?: any[];
+}
 
 export interface BotContext extends Context, Scenes.SceneContext {
   match?: RegExpExecArray | undefined;
@@ -21,14 +28,51 @@ const bot = new Telegraf<BotContext>(
 
 const mainMenu = new MenuTemplate<BotContext>((ctx) => '選擇查詢的交通工具🚆');
 
+bot.use((ctx: any, next) => {
+  if (ctx.callbackQuery) {
+    console.log('callback data just happened', ctx.callbackQuery.data);
+  }
+
+  return next();
+});
+
 mainMenu.submenu('輕鐵', 'lrt', lrtMenu);
 mainMenu.submenu('地鐵', 'mtr', mtrMenu);
+// Need to be reachable
+mainMenu.submenu('bus-company', 'bus-company', companyMenu, {
+  hide: (ctx) => {
+    console.log(ctx);
+
+    return !ctx.session || !ctx.session.companies;
+  },
+});
+mainMenu.interact('巴士', 'bus-route', {
+  do: async (ctx, path) => {
+    const text = '輸入巴士路線🚆';
+    const additionalState = getMenuOfPath(path);
+    await routeQuestion.replyWithMarkdown(ctx, text, additionalState);
+    return false;
+  },
+});
+
+// const stage = new Scenes.Stage<BotContext>([busScene], {
+//   ttl: 120,
+// });
 
 const menuMiddleware = new MenuMiddleware('/', mainMenu);
 bot.command('start', (ctx) => menuMiddleware.replyToContext(ctx));
+bot.command('state', (ctx) => ctx.reply(JSON.stringify(ctx.state)));
+// bot.command('session', (ctx) => ctx.reply(JSON.stringify(ctx.session) ?? 'undefined'));
+bot.command('session', (ctx) => console.log(ctx.session));
+
+// If it is similar to route number format
+// bot.hears(/[A-Za-z0-9]*[0-9][A-Za-z0-9]*/g, async ctx => await handleRouteNumber(ctx, menuMiddleware));
 
 bot.use(session());
+// bot.use(stage.middleware());
 bot.use(menuMiddleware);
+bot.use(routeQuestion.middleware());
+console.log(menuMiddleware.tree());
 
 bot.catch(errorHandler);
 
