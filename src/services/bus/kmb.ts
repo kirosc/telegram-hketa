@@ -50,7 +50,7 @@ export interface KMBETA {
   dest_tc: string;
   dest_sc: string;
   eta_seq: number;
-  eta: string; // ISO Time
+  eta: string | null; // ISO Time
   rmk_en: string;
   rmk_tc: string;
   rmk_sc: string;
@@ -146,12 +146,16 @@ export async function getKMBETA(
 export function getKMBETAMessage(etas: KMBETA[]) {
   const message = `預計到站時間如下⌚\n${SEPARATOR}\n`;
 
-  const etasMessage = etas.map((eta) => {
-    const etaDt = DateTime.fromISO(eta.eta);
+  const etasMessage = etas.map(({ eta, eta_seq, dest_tc, rmk_tc }) => {
+    if (!eta) {
+      return rmk_tc;
+    }
+
+    const etaDt = DateTime.fromISO(eta);
     const etaMins = getTimeDiffinMins(etaDt);
     const formattedTime = etaDt.toLocaleString(DateTime.TIME_24_SIMPLE);
-    const remark = eta.rmk_tc ? `- ${eta.rmk_tc}` : '';
-    return `${eta.eta_seq}. ${etaMins} 分鐘  (${formattedTime}) - 往 ${eta.dest_tc} ${remark}`;
+    const remark = rmk_tc ? `- ${rmk_tc}` : '';
+    return `${eta_seq}. ${etaMins} 分鐘  (${formattedTime}) - 往 ${dest_tc} ${remark}`;
   });
 
   return `${message}${etasMessage.join('\n')}`;

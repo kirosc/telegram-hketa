@@ -10,11 +10,21 @@ import {
   getMenuOfPath,
   MenuMiddleware,
   MenuTemplate,
+  replyMenuToContext,
 } from 'telegraf-inline-menu';
-import { companyMenu, handleRouteNumber, routeQuestion } from '@scenes/bus';
+import { companyMenu, routeListMenu, routeQuestion } from '@scenes/bus';
+import { BusCompanyCode } from '@services/bus/common';
+import { KMBRoute } from '@services/bus/kmb';
 
 interface SessionData extends SceneSession {
-  companies?: any[];
+  bus: {
+    route?: string;
+    companies?: any[];
+    company?: BusCompanyCode;
+    kmb: {
+      routeList?: KMBRoute[];
+    };
+  };
 }
 
 export interface BotContext extends Context, Scenes.SceneContext {
@@ -41,9 +51,14 @@ mainMenu.submenu('地鐵', 'mtr', mtrMenu);
 // Need to be reachable
 mainMenu.submenu('bus-company', 'bus-company', companyMenu, {
   hide: (ctx) => {
-    console.log(ctx);
-
-    return !ctx.session || !ctx.session.companies;
+    return false;
+    return !ctx.session || !ctx.session.bus.companies;
+  },
+});
+mainMenu.submenu('bus-route', 'bus-route', routeListMenu, {
+  hide: (ctx) => {
+    return false;
+    return !ctx.session || !ctx.session.bus.companies;
   },
 });
 mainMenu.interact('巴士', 'bus-route', {
