@@ -22,3 +22,17 @@ export enum BusCompany {
   NLB = 'NLB',
   MTR = 'MTR',
 }
+
+const ENV = process.env.NODE_ENV || 'devlopment';
+const TG_TOKEN = process.env.TG_KEY;
+const TG_DEV_TOKEN = process.env.TG_DEV_KEY;
+const SENTRY_TOKEN = process.env.SENTRY_KEY;
+const GA_TID = process.env.GA_TID;
+
+export default Object.freeze({
+  ENV,
+  TG_TOKEN,
+  TG_DEV_TOKEN,
+  SENTRY_TOKEN,
+  GA_TID,
+});

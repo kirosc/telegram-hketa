@@ -2,7 +2,7 @@ require('dotenv').config();
 import '../src/config/alias';
 import express, { json } from 'express';
 import { Telegraf, session, Context, Scenes } from 'telegraf';
-import { ENV, TG_TOKEN, TG_DEV_TOKEN } from '../lib/constants';
+import env from '@src/constant';
 import { SceneSession } from 'telegraf/typings/scenes';
 import { lrtMenu, mtrMenu } from '@scenes/index';
 import { errorHandler } from '@services/telegram';
@@ -37,8 +37,10 @@ export interface BotContext extends Context, Scenes.SceneContext {
   session: SessionData;
 }
 
+const { ENV, TG_TOKEN, TG_DEV_TOKEN } = env;
+
 const bot = new Telegraf<BotContext>(
-  ENV === 'production' ? TG_TOKEN : TG_DEV_TOKEN
+  ENV === 'production' ? TG_TOKEN! : TG_DEV_TOKEN!
 );
 
 const mainMenu = new MenuTemplate<BotContext>((ctx) => '選擇查詢的交通工具🚆');
