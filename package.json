@@ -41,6 +41,7 @@
     "express": "^4.17.1",
     "graphql": "^15.2.0",
     "graphql-tag": "^2.10.3",
+    "lodash": "^4.17.21",
     "luxon": "^1.27.0",
     "module-alias": "^2.2.2",
     "moment": "^2.27.0",
