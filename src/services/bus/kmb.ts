@@ -2,6 +2,7 @@ import { BusETA, BusRoute, BusRouteStop, BusStop } from '@interfaces/bus';
 import { KMB_ENDPOINT } from '@src/constant';
 import axios from 'axios';
 import _ from 'lodash';
+import { BOUND_MAPPING } from './common';
 
 interface KMBResponse<T> {
   type: string;
@@ -24,11 +25,6 @@ export interface KMBETA extends BusETA {
   co: 'KMB';
   service_type: number;
 }
-
-const BOUND_MAPPING = {
-  I: 'inbound',
-  O: 'outbound',
-};
 
 /**
  * Get the list of routes of a route

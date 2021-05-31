@@ -8,6 +8,11 @@ import { DateTime } from 'luxon';
 export type BusCompanyCode = 'CTB' | 'NWFB' | 'KMB' | 'NLB' | 'MTR';
 type Route = Record<string, string[]>;
 
+export const BOUND_MAPPING = {
+  I: 'inbound',
+  O: 'outbound',
+};
+
 const routes: Route = readJSON('routes');
 
 /**

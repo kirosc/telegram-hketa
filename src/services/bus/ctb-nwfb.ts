@@ -1,7 +1,8 @@
-import { BusETA, BusRoute, BusRouteStop } from '@interfaces/bus';
+import { BusETA, BusRoute, BusRouteStop, BusStop } from '@interfaces/bus';
 import { BRAVO_BUS_ENDPOINT } from '@src/constant';
 import axios from 'axios';
 import _ from 'lodash';
+import { BOUND_MAPPING } from './common';
 
 type Company = 'CTB' | 'NWFB';
 type Direction = 'inbound' | 'outbound';
@@ -24,7 +25,7 @@ export interface BravoBusRouteStop extends BusRouteStop {
   data_timestamp: string;
 }
 
-export interface BravoBusStop {
+export interface BravoBusStop extends BusStop {
   data_timestamp: string;
 }
 
@@ -76,9 +77,13 @@ export async function getBravoBusStop(stopId: string) {
 export async function getBravoBusRouteStopDetail(
   company: Company,
   route: string,
-  direction: Direction
+  direction: 'I' | 'O'
 ) {
-  const routeStops = await getBravoBusRouteStop(company, route, direction);
+  const routeStops = await getBravoBusRouteStop(
+    company,
+    route,
+    BOUND_MAPPING[direction] as Direction
+  );
   const nameJobs = routeStops.map((s) => getBravoBusStop(s.stop));
   const stops = await Promise.all(nameJobs);
 

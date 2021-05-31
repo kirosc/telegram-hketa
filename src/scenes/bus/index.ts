@@ -14,6 +14,12 @@ import {
   getKMBRouteStopDetail,
 } from '@services/bus/kmb';
 import { BusCompany } from '@src/constant';
+import {
+  getBravoBusETA,
+  getBravoBusRoute,
+  getBravoBusRouteStopDetail,
+  isCircular,
+} from '@services/bus/ctb-nwfb';
 
 enum Prefix {
   ENTRY_COMPANY = 'bus-company',
@@ -45,10 +51,18 @@ const etaMenu = new MenuTemplate<BotContext>(async (ctx) => {
     case BusCompany.KMB:
       // FIXME: This function will be run multiple time at every stage,
       // so this has to be idempotent
-      const [, , routeList, stopId] = ctx.match!;
+      const [, , routeList, kmbStopId] = ctx.match!;
       const [, serviceType] = routeList.split(',');
-      const etas = await getKMBETA(route, serviceType, stopId);
-      message = getETAMessage(etas);
+      const kmbEtas = await getKMBETA(route, serviceType, kmbStopId);
+      message = getETAMessage(kmbEtas);
+
+      break;
+
+    case BusCompany.CTB:
+    case BusCompany.NWFB:
+      const [, , , bravoStopId] = ctx.match!;
+      const bravoEtas = await getBravoBusETA(company, route, bravoStopId);
+      message = getETAMessage(bravoEtas);
 
       break;
     default:
@@ -126,6 +140,17 @@ async function buildRouteListKeyboard(ctx: BotContext) {
         `${r.orig_tc} > ${r.dest_tc}`,
       ]);
       break;
+    case BusCompany.CTB:
+    case BusCompany.NWFB:
+      await fetchRouteList(ctx, company, route);
+      const { orig_tc, dest_tc } = ctx.session.bus.bravo.route!;
+      keyboard = [['O', dest_tc]];
+
+      if (!ctx.session.bus.bravo.circular) {
+        keyboard.push(['I', orig_tc]);
+      }
+
+      break;
     default:
       ctx.reply('Not implemented');
   }
@@ -136,7 +161,7 @@ async function buildRouteListKeyboard(ctx: BotContext) {
 // TODO: Build the list of board based on ctx.session.route, ctx.session.company and related info
 async function buildStopKeyboard(ctx: BotContext) {
   const { route } = ctx.session.bus;
-  const [, company, routeList] = ctx.match!; // FIXME: maybe null if come from replyMenuToContext
+  const [, company] = ctx.match!; // FIXME: maybe null if come from replyMenuToContext
   // const routeList = ctx.match!.pop();
 
   let keyboard: Array<[string, string]> = [];
@@ -147,13 +172,26 @@ async function buildStopKeyboard(ctx: BotContext) {
 
   switch (company) {
     case BusCompany.KMB:
+      const [, , routeList] = ctx.match!;
       const [bound, serviceType] = routeList!.split(',');
-      const stops = await getKMBRouteStopDetail(
+      const kmbStops = await getKMBRouteStopDetail(
         route,
         bound as any,
         serviceType
       );
-      keyboard = stops.map((s) => [s.stop, s.name_tc]);
+      keyboard = kmbStops.map((s) => [s.stop, s.name_tc]);
+
+      break;
+    case BusCompany.CTB:
+    case BusCompany.NWFB:
+      const [, , direction] = ctx.match!;
+      const bravoStops = await getBravoBusRouteStopDetail(
+        company,
+        route,
+        direction as any
+      );
+      keyboard = bravoStops.map((s) => [s.stop, s.name_tc]);
+
       break;
     default:
       ctx.reply('Not implemented');
@@ -172,7 +210,7 @@ async function handleRouteNumber(ctx: BotContext) {
   const companies = getRouteCompany(route);
   ctx.session = {
     __scenes: {},
-    bus: { route, companies, kmb: {} },
+    bus: { route, companies, kmb: {}, bravo: {} },
   };
 
   switch (companies.length) {
@@ -212,6 +250,14 @@ async function fetchRouteList(
         const routeList = await getKMBRouteList(route);
         ctx.session.bus.company = BusCompany.KMB;
         ctx.session.bus.kmb.routeList = routeList;
+      }
+
+      return;
+    case BusCompany.CTB:
+    case BusCompany.NWFB:
+      if (!ctx.session.bus.bravo.circular) {
+        ctx.session.bus.bravo.circular = await isCircular(company, route);
+        ctx.session.bus.bravo.route = await getBravoBusRoute(company, route);
       }
 
       return;

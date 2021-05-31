@@ -15,6 +15,7 @@ import {
 import { companyMenu, routeListMenu, routeQuestion } from '@scenes/bus';
 import { BusCompanyCode } from '@services/bus/common';
 import { KMBRoute } from '@services/bus/kmb';
+import { BravoBusRoute } from '@services/bus/ctb-nwfb';
 
 interface SessionData extends SceneSession {
   bus: {
@@ -23,6 +24,10 @@ interface SessionData extends SceneSession {
     company?: BusCompanyCode;
     kmb: {
       routeList?: KMBRoute[];
+    };
+    bravo: {
+      circular?: boolean;
+      route?: BravoBusRoute;
     };
   };
 }
