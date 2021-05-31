@@ -1,11 +1,6 @@
 import { BotContext } from '@api/index';
 import { createNavButtons } from '@services/telegram';
-import {
-  editMenuOnContext,
-  getMenuOfPath,
-  MenuTemplate,
-  replyMenuToContext,
-} from 'telegraf-inline-menu';
+import { MenuTemplate, replyMenuToContext } from 'telegraf-inline-menu';
 import { BusCompanyCode, getRouteCompany } from '@services/bus/common';
 import { readJSON } from '@services/io';
 import TelegrafStatelessQuestion from 'telegraf-stateless-question';
@@ -181,20 +176,20 @@ async function handleRouteNumber(ctx: BotContext) {
     case 0:
       return ctx.reply('無此路線❌');
     case 1:
-      const [company] = companies;
-      // Route list or stop directly
-      // await fetchRouteList(ctx, company, route);
-      // const routeList = ctx.session.bus.kmb.routeList!;
+    // const [company] = companies;
+    // Route list or stop directly
+    // await fetchRouteList(ctx, company, route);
+    // const routeList = ctx.session.bus.kmb.routeList!;
 
-      // if (routeList.length === 1) {
-      //   // TODO: Show stops Menu
-      //   throw new Error('Not Implemented')
-      // }
+    // if (routeList.length === 1) {
+    //   // TODO: Show stops Menu
+    //   throw new Error('Not Implemented')
+    // }
 
-      // await replyMenuToContext(routeListMenu, ctx, `/${Prefix.ENTRY_ROUTE}/`);
-      // // TODO: Route List Menu
+    // await replyMenuToContext(routeListMenu, ctx, `/${Prefix.ENTRY_ROUTE}/`);
+    // // TODO: Route List Menu
 
-      return;
+    // return;
     default:
       await replyMenuToContext(companyMenu, ctx, `/${Prefix.ENTRY_COMPANY}/`);
 

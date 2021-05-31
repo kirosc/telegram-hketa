@@ -7,10 +7,10 @@ import { SceneSession } from 'telegraf/typings/scenes';
 import { lrtMenu, mtrMenu } from '@scenes/index';
 import { errorHandler } from '@services/telegram';
 import {
+  deleteMenuFromContext,
   getMenuOfPath,
   MenuMiddleware,
   MenuTemplate,
-  replyMenuToContext,
 } from 'telegraf-inline-menu';
 import { companyMenu, routeListMenu, routeQuestion } from '@scenes/bus';
 import { BusCompanyCode } from '@services/bus/common';
@@ -51,21 +51,21 @@ mainMenu.submenu('地鐵', 'mtr', mtrMenu);
 // Need to be reachable
 mainMenu.submenu('bus-company', 'bus-company', companyMenu, {
   hide: (ctx) => {
-    return false;
     return !ctx.session || !ctx.session.bus.companies;
   },
 });
-mainMenu.submenu('bus-route', 'bus-route', routeListMenu, {
-  hide: (ctx) => {
-    return false;
-    return !ctx.session || !ctx.session.bus.companies;
-  },
-});
+// mainMenu.submenu('bus-route', 'bus-route', routeListMenu, {
+//   hide: (ctx) => {
+//     return false;
+//     return !ctx.session || !ctx.session.bus.companies;
+//   },
+// });
 mainMenu.interact('巴士', 'bus-route', {
   do: async (ctx, path) => {
     const text = '輸入巴士路線🚆';
     const additionalState = getMenuOfPath(path);
-    await routeQuestion.replyWithMarkdown(ctx, text, additionalState);
+    deleteMenuFromContext(ctx);
+    routeQuestion.replyWithMarkdown(ctx, text, additionalState);
     return false;
   },
 });
