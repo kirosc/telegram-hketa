@@ -43,22 +43,9 @@ const bot = new Telegraf<BotContext>(
 
 const mainMenu = new MenuTemplate<BotContext>((ctx) => '選擇查詢的交通工具🚆');
 
-bot.use((ctx: any, next) => {
-  if (ctx.callbackQuery) {
-    console.log('callback data just happened', ctx.callbackQuery.data);
-  }
-
-  return next();
-});
-
 mainMenu.submenu('輕鐵', 'lrt', lrtMenu);
 mainMenu.submenu('地鐵', 'mtr', mtrMenu);
 // Need to be reachable
-mainMenu.submenu('bus-company', 'bus-company', companyMenu, {
-  hide: (ctx) => {
-    return !ctx.session || !ctx.session.bus.companies;
-  },
-});
 // mainMenu.submenu('bus-route', 'bus-route', routeListMenu, {
 //   hide: (ctx) => {
 //     return false;
@@ -74,6 +61,11 @@ mainMenu.interact('巴士', 'bus-route', {
     return false;
   },
 });
+mainMenu.submenu('上次查詢的巴士路線', 'bus-company', companyMenu, {
+  hide: (ctx) => {
+    return !ctx.session || !ctx.session.bus.companies;
+  },
+});
 
 // const stage = new Scenes.Stage<BotContext>([busScene], {
 //   ttl: 120,
@@ -81,9 +73,6 @@ mainMenu.interact('巴士', 'bus-route', {
 
 const menuMiddleware = new MenuMiddleware('/', mainMenu);
 bot.command('start', (ctx) => menuMiddleware.replyToContext(ctx));
-bot.command('state', (ctx) => ctx.reply(JSON.stringify(ctx.state)));
-// bot.command('session', (ctx) => ctx.reply(JSON.stringify(ctx.session) ?? 'undefined'));
-bot.command('session', (ctx) => console.log(ctx.session));
 
 // If it is similar to route number format
 // bot.hears(/[A-Za-z0-9]*[0-9][A-Za-z0-9]*/g, async ctx => await handleRouteNumber(ctx, menuMiddleware));
@@ -92,7 +81,6 @@ bot.use(session());
 // bot.use(stage.middleware());
 bot.use(menuMiddleware);
 bot.use(routeQuestion.middleware());
-console.log(menuMiddleware.tree());
 
 bot.catch(errorHandler);
 
