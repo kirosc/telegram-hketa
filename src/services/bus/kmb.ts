@@ -1,8 +1,7 @@
-import { getTimeDiffinMins } from '@services/common';
-import { KMB_ENDPOINT, SEPARATOR } from '@src/constant';
+import { BusETA, BusRoute, BusRouteStop, BusStop } from '@interfaces/bus';
+import { KMB_ENDPOINT } from '@src/constant';
 import axios from 'axios';
 import _ from 'lodash';
-import { DateTime, Interval } from 'luxon';
 
 interface KMBResponse<T> {
   type: string;
@@ -11,50 +10,19 @@ interface KMBResponse<T> {
   data: T[];
 }
 
-export interface KMBRoute {
-  route: string;
+export interface KMBRoute extends BusRoute {
   bound: 'I' | 'O';
   service_type: string;
-  orig_en: string;
-  orig_tc: string;
-  orig_sc: string;
-  dest_en: string;
-  dest_tc: string;
-  dest_sc: string;
 }
 
-export interface KMBRouteStop {
-  route: string;
+export interface KMBRouteStop extends BusRouteStop {
   bound: 'I' | 'O';
   service_type: string;
-  seq: string;
-  stop: string;
 }
 
-export interface KMBStop {
-  stop: string;
-  name_en: string;
-  name_tc: string;
-  name_sc: string;
-  lat: string;
-  long: string;
-}
-
-export interface KMBETA {
+export interface KMBETA extends BusETA {
   co: 'KMB';
-  route: string;
-  dir: 'I' | 'O';
   service_type: number;
-  seq: number;
-  dest_en: string;
-  dest_tc: string;
-  dest_sc: string;
-  eta_seq: number;
-  eta: string | null; // ISO Time
-  rmk_en: string;
-  rmk_tc: string;
-  rmk_sc: string;
-  data_timestamp: string; // ISO Time
 }
 
 const BOUND_MAPPING = {
@@ -96,7 +64,7 @@ export async function getKMBRouteStop(
  * Get all the stops
  */
 export async function getKMBStopList() {
-  const res = await axios.get<KMBResponse<KMBStop>>(`${KMB_ENDPOINT}/stop`);
+  const res = await axios.get<KMBResponse<BusStop>>(`${KMB_ENDPOINT}/stop`);
 
   return res.data.data;
 }
@@ -141,22 +109,4 @@ export async function getKMBETA(
   );
 
   return res.data.data;
-}
-
-export function getKMBETAMessage(etas: KMBETA[]) {
-  const message = `預計到站時間如下⌚\n${SEPARATOR}\n`;
-
-  const etasMessage = etas.map(({ eta, eta_seq, dest_tc, rmk_tc }) => {
-    if (!eta) {
-      return rmk_tc;
-    }
-
-    const etaDt = DateTime.fromISO(eta);
-    const etaMins = getTimeDiffinMins(etaDt);
-    const formattedTime = etaDt.toLocaleString(DateTime.TIME_24_SIMPLE);
-    const remark = rmk_tc ? `- ${rmk_tc}` : '';
-    return `${eta_seq}. ${etaMins} 分鐘  (${formattedTime}) - 往 ${dest_tc} ${remark}`;
-  });
-
-  return `${message}${etasMessage.join('\n')}`;
 }

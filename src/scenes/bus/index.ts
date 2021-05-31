@@ -1,12 +1,15 @@
 import { BotContext } from '@api/index';
 import { createNavButtons } from '@services/telegram';
 import { MenuTemplate, replyMenuToContext } from 'telegraf-inline-menu';
-import { BusCompanyCode, getRouteCompany } from '@services/bus/common';
+import {
+  BusCompanyCode,
+  getETAMessage,
+  getRouteCompany,
+} from '@services/bus/common';
 import { readJSON } from '@services/io';
 import TelegrafStatelessQuestion from 'telegraf-stateless-question';
 import {
   getKMBETA,
-  getKMBETAMessage,
   getKMBRouteList,
   getKMBRouteStopDetail,
 } from '@services/bus/kmb';
@@ -45,7 +48,7 @@ const etaMenu = new MenuTemplate<BotContext>(async (ctx) => {
       const [, , routeList, stopId] = ctx.match!;
       const [, serviceType] = routeList.split(',');
       const etas = await getKMBETA(route, serviceType, stopId);
-      message = getKMBETAMessage(etas);
+      message = getETAMessage(etas);
 
       break;
     default:
