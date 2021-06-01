@@ -19,7 +19,7 @@ import {
   getBravoBusRoute,
   getBravoBusRouteStopDetail,
   isCircular,
-} from '@services/bus/ctb-nwfb';
+} from '@services/bus/bravo';
 
 enum Prefix {
   ENTRY_COMPANY = 'bus-company',

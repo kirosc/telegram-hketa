@@ -15,7 +15,7 @@ import {
 import { companyMenu, routeQuestion } from '@scenes/bus';
 import { BusCompanyCode } from '@services/bus/common';
 import { KMBRoute } from '@services/bus/kmb';
-import { BravoBusRoute } from '@services/bus/ctb-nwfb';
+import { BravoBusRoute } from '@services/bus/bravo';
 import { Settings } from 'luxon';
 interface SessionData extends SceneSession {
   bus: {
