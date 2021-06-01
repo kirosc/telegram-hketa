@@ -57,11 +57,10 @@ const etaMenu = new MenuTemplate<BotContext>(async (ctx) => {
       message = getETAMessage(kmbEtas);
 
       break;
-
     case BusCompany.CTB:
     case BusCompany.NWFB:
       const [, , , bravoStopId] = ctx.match!;
-      const bravoEtas = await getBravoBusETA(company, route, bravoStopId);
+      const bravoEtas = await getBravoBusETA(company, bravoStopId, route);
       message = getETAMessage(bravoEtas);
 
       break;
