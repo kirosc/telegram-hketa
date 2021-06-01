@@ -12,11 +12,11 @@ import {
   MenuMiddleware,
   MenuTemplate,
 } from 'telegraf-inline-menu';
-import { companyMenu, routeListMenu, routeQuestion } from '@scenes/bus';
+import { companyMenu, routeQuestion } from '@scenes/bus';
 import { BusCompanyCode } from '@services/bus/common';
 import { KMBRoute } from '@services/bus/kmb';
 import { BravoBusRoute } from '@services/bus/ctb-nwfb';
-
+import { Settings } from 'luxon';
 interface SessionData extends SceneSession {
   bus: {
     route?: string;
@@ -36,6 +36,8 @@ export interface BotContext extends Context, Scenes.SceneContext {
   match?: RegExpExecArray | undefined;
   session: SessionData;
 }
+
+Settings.defaultZoneName = 'Asia/Hong_Kong';
 
 const { ENV, TG_TOKEN, TG_DEV_TOKEN } = env;
 
