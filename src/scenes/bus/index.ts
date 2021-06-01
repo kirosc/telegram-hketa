@@ -205,7 +205,7 @@ async function handleRouteNumber(ctx: BotContext) {
     return;
   }
 
-  const route = ctx.message?.text ?? '';
+  const route = ctx.message?.text.toUpperCase() ?? '';
   const companies = getRouteCompany(route);
   ctx.session = {
     __scenes: {},
