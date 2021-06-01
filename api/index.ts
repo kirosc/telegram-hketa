@@ -39,7 +39,7 @@ export interface BotContext extends Context, Scenes.SceneContext {
 
 Settings.defaultZoneName = 'Asia/Hong_Kong';
 
-const { ENV, TG_TOKEN, TG_DEV_TOKEN } = env;
+const { PORT, ENV, TG_TOKEN, TG_DEV_TOKEN } = env;
 
 const bot = new Telegraf<BotContext>(
   ENV === 'production' ? TG_TOKEN! : TG_DEV_TOKEN!
@@ -160,6 +160,7 @@ app.use('/message', async function (req, res) {
 });
 
 // Finally, start our server
-app.listen(3000, function () {
-  console.log('Telegram app listening on port 3000!');
+const port = PORT ?? 3000;
+app.listen(port, function () {
+  console.log(`Telegram app listening on port ${port}!`);
 });
