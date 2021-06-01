@@ -1,4 +1,10 @@
-import { BusETA, BusRoute, BusRouteStop, BusStop } from '@interfaces/bus';
+import {
+  BusETA,
+  BusResponse,
+  BusRoute,
+  BusRouteStop,
+  BusStop,
+} from '@interfaces/bus';
 import { BRAVO_BUS_ENDPOINT } from '@src/constant';
 import axios from 'axios';
 import _ from 'lodash';
@@ -7,10 +13,7 @@ import { BOUND_MAPPING } from './common';
 type Company = 'CTB' | 'NWFB';
 type Direction = 'inbound' | 'outbound';
 
-interface BravoBusResponse<T> {
-  type: string;
-  version: string;
-  generated_timestamp: string;
+interface BravoBusResponse<T> extends BusResponse {
   data: T;
 }
 

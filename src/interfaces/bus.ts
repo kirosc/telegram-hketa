@@ -1,3 +1,8 @@
+export interface BusResponse {
+  type: string;
+  version: string;
+  generated_timestamp: string;
+}
 export interface BusRoute {
   route: string;
   orig_en: string;

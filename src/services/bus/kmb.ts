@@ -1,13 +1,16 @@
-import { BusETA, BusRoute, BusRouteStop, BusStop } from '@interfaces/bus';
+import {
+  BusETA,
+  BusResponse,
+  BusRoute,
+  BusRouteStop,
+  BusStop,
+} from '@interfaces/bus';
 import { KMB_ENDPOINT } from '@src/constant';
 import axios from 'axios';
 import _ from 'lodash';
 import { BOUND_MAPPING } from './common';
 
-interface KMBResponse<T> {
-  type: string;
-  version: string;
-  generated_timestamp: string;
+interface KMBResponse<T> extends BusResponse {
   data: T[];
 }
 
