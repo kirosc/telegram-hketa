@@ -131,11 +131,9 @@ function buildCompanyNameKeyboard(ctx: BotContext) {
   );
 }
 
-// TODO: Build keyboard based on ctx.session.route ctx.match (company name)
 async function buildRouteListKeyboard(ctx: BotContext) {
   const [, company] = ctx.match!; // FIXME: maybe null if come from replyMenuToContext
   const { route } = ctx.session.bus;
-  // const { company, route } = ctx.session.bus;
   let keyboard: Array<[string, string]> = [];
 
   if (!route) {
@@ -240,26 +238,13 @@ async function handleRouteNumber(ctx: BotContext) {
     case 0:
       await ctx.reply('無此路線❌');
       routeQuestion.replyWithMarkdown(ctx, '輸入巴士路線🚆');
-      return;
+
+      break;
     case 1:
-    // const [company] = companies;
-    // Route list or stop directly
-    // await fetchRouteList(ctx, company, route);
-    // const routeList = ctx.session.bus.kmb.routeList!;
-
-    // if (routeList.length === 1) {
-    //   // TODO: Show stops Menu
-    //   throw new Error('Not Implemented')
-    // }
-
-    // await replyMenuToContext(routeListMenu, ctx, `/${Prefix.ENTRY_ROUTE}/`);
-    // // TODO: Route List Menu
-
-    // return;
     default:
       await replyMenuToContext(companyMenu, ctx, `/${Prefix.ENTRY_COMPANY}/`);
 
-      return;
+      break;
   }
 }
 

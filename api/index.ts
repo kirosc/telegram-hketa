@@ -56,107 +56,40 @@ const mainMenu = new MenuTemplate<BotContext>((ctx) => '選擇查詢的交通工
 
 mainMenu.submenu('輕鐵', 'lrt', lrtMenu);
 mainMenu.submenu('地鐵', 'mtr', mtrMenu);
-// Need to be reachable
-// mainMenu.submenu('bus-route', 'bus-route', routeListMenu, {
-//   hide: (ctx) => {
-//     return false;
-//     return !ctx.session || !ctx.session.bus.companies;
-//   },
-// });
 mainMenu.interact('巴士', 'bus-route', {
   do: async (ctx) => {
     routeQuestion.replyWithMarkdown(ctx, '輸入巴士路線🚆');
     return false;
   },
 });
+// Need to be reachable. it will be validate at each subpath
 mainMenu.submenu('上次查詢的巴士路線', 'bus-company', companyMenu, {
-  hide: (ctx) => {
-    if (ctx.match && ctx.match[0] === '/') {
-      return true;
-    }
-
-    return !ctx.session || !ctx.session.bus.companies;
-  },
+  hide: (ctx) => !ctx.match || ctx.match['input'] === '/',
 });
 
-// const stage = new Scenes.Stage<BotContext>([busScene], {
-//   ttl: 120,
-// });
-
 const menuMiddleware = new MenuMiddleware('/', mainMenu);
-bot.command('start', (ctx) => menuMiddleware.replyToContext(ctx));
-
-// If it is similar to route number format
-// bot.hears(/[A-Za-z0-9]*[0-9][A-Za-z0-9]*/g, async ctx => await handleRouteNumber(ctx, menuMiddleware));
+bot.start((ctx) => menuMiddleware.replyToContext(ctx));
 
 bot.use(session());
-// bot.use(stage.middleware());
 bot.use(menuMiddleware);
 bot.use(routeQuestion.middleware());
 
 bot.catch(errorHandler);
 
-// bot.use(async (ctx, next) => {
-//   console.log('Current session');
-//   console.log(ctx.session);
-//   await next();
-// });
+bot.command('contribute', (ctx) =>
+  ctx.replyWithMarkdown(
+    `Make this bot better!
+[Open Source Project](https://github.com/kirosc/tg-hketa)`
+  )
+);
 
-// bot.use(async (ctx, next) => {
-//   if (!ctx.session) {
-//     ctx.session = {
-//       __scenes: {}
-//     };
-//   }
-//   await next();
-// });
-
-// bot.command('rainbows', async ctx => {
-//   let text;
-//   if (ctx?.session?.language === 'de') {
-//     text = 'Was machen Einhörner?';
-//   } else {
-//     text = 'What are unicorns doing?';
-//     console.log(ctx.session);
-//     ctx.session.language = 'de';
-//     console.log(ctx.session);
-//   }
-
-//   // ctx.reply(JSON.stringify(ctx.session))
-//   await ctx.replyWithHTML(
-//     'What are unicorns doing?' + unicornQuestion.messageSuffixHTML(),
-//     {
-//       parse_mode: 'HTML',
-//       reply_to_message_id: ctx.message.message_id,
-//       reply_markup: {
-//         force_reply: true,
-//         inline_keyboard: [
-//           [
-//             {
-//               text: 'companyNames[company].tc_name',
-//               callback_data: 'unicorns'
-//             },
-//           ]
-//         ]
-//       }
-//     }
-//   )
-// });
-
-// bot.command('contribute', ctx => ctx.replyWithMarkdown(
-//   `Make this bot better!
-// [Open Source Project](https://github.com/kirosc/tg-hketa)`));
-
-// bot.command('help', ctx => ctx.replyWithMarkdown(
-//   `*可使用的指令*
-// /bus - 查詢巴士路線
-// /mtr - 查詢港鐵四條路線
-// /contribute - 一同開發此bot`));
-
-// bot.start(ctx => ctx.replyWithMarkdown(
-//   `直接輸入巴士路線🔢
-// 或輸入 /help 查看可用指令`
-// ));
+bot.command('help', (ctx) =>
+  ctx.replyWithMarkdown(
+    `*可使用的指令*
+/start - 開始查詢
+/contribute - 一同開發此bot`
+  )
+);
 
 const app = express();
 app.use(json());
