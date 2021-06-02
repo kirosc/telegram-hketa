@@ -14,10 +14,15 @@ import {
 } from 'telegraf-inline-menu';
 import { companyMenu, routeQuestion } from '@scenes/bus';
 import { BusCompanyCode } from '@services/bus/common';
-import { KMBRoute } from '@services/bus/kmb';
-import { BravoBusRoute } from '@services/bus/bravo';
+import { KMBRoute, KMBRouteStop } from '@services/bus/kmb';
+import {
+  BravoBusRoute,
+  BravoBusRouteStop,
+  BravoBusStop,
+} from '@services/bus/bravo';
 import { Settings } from 'luxon';
-import { NLBRoute } from '@services/bus/nlb';
+import { NLBRoute, NLBStop } from '@services/bus/nlb';
+import { BusStop } from '@interfaces/bus';
 interface SessionData extends SceneSession {
   bus: {
     route?: string;
@@ -25,13 +30,16 @@ interface SessionData extends SceneSession {
     company?: BusCompanyCode;
     kmb: {
       routeList?: KMBRoute[];
+      stops?: (KMBRouteStop & BusStop)[];
     };
     bravo: {
       circular?: boolean;
       route?: BravoBusRoute;
+      stops?: (BravoBusRouteStop & BravoBusStop)[];
     };
     nlb: {
-      route?: NLBRoute[];
+      routes?: NLBRoute[];
+      stops?: NLBStop[];
     };
   };
 }

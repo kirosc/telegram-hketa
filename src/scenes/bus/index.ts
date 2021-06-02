@@ -164,7 +164,7 @@ async function buildRouteListKeyboard(ctx: BotContext) {
 
       break;
     case BusCompany.NLB:
-      const routes = ctx.session.bus.nlb.route!;
+      const routes = ctx.session.bus.nlb.routes!;
       keyboard = routes?.map((r) => [r.routeId, r.routeName_c]);
 
       break;
@@ -191,28 +191,28 @@ async function buildStopKeyboard(ctx: BotContext) {
     case BusCompany.KMB:
       const [, , routeList] = ctx.match!;
       const [bound, serviceType] = routeList!.split(',');
-      const kmbStops = await getKMBRouteStopDetail(
-        route,
-        bound as any,
-        serviceType
-      );
+      const kmbStops =
+        ctx.session.bus.kmb.stops ??
+        (await getKMBRouteStopDetail(route, bound as any, serviceType));
+      ctx.session.bus.kmb.stops = kmbStops;
       keyboard = kmbStops.map((s) => [s.stop, s.name_tc]);
 
       break;
     case BusCompany.CTB:
     case BusCompany.NWFB:
       const [, , direction] = ctx.match!;
-      const bravoStops = await getBravoBusRouteStopDetail(
-        company,
-        route,
-        direction as any
-      );
+      const bravoStops =
+        ctx.session.bus.bravo.stops ??
+        (await getBravoBusRouteStopDetail(company, route, direction as any));
+      ctx.session.bus.bravo.stops = bravoStops;
       keyboard = bravoStops.map((s) => [s.stop, s.name_tc]);
 
       break;
     case BusCompany.NLB:
       const [, , routeId] = ctx.match!;
-      const nlbStops = await listNLBRouteStop(routeId);
+      const nlbStops =
+        ctx.session.bus.nlb.stops ?? (await listNLBRouteStop(routeId));
+      ctx.session.bus.nlb.stops = nlbStops;
       keyboard = nlbStops.map((s) => [s.stopId, s.stopName_c]);
 
       break;
@@ -285,7 +285,7 @@ async function fetchRouteList(
 
       break;
     case BusCompany.NLB:
-      ctx.session.bus.nlb.route = await listNLBSubRoute(route);
+      ctx.session.bus.nlb.routes = await listNLBSubRoute(route);
 
       break;
     default:
