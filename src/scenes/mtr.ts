@@ -5,32 +5,40 @@ import { createNavButtons } from '@services/telegram';
 import { Scenes } from 'telegraf';
 import { MenuMiddleware, MenuTemplate } from 'telegraf-inline-menu';
 
+const etaMenu = new MenuTemplate<BotContext>(displayETA);
 const lineMenu = new MenuTemplate<BotContext>((ctx) => '選擇路綫🚆');
 const stationMenu = new MenuTemplate<BotContext>((ctx) => '選擇車站🚉');
+
+etaMenu.interact('重新整理 🔄', 'f5', {
+  do: async (ctx) => {
+    ctx.answerCbQuery('已重新整理');
+    return true;
+  },
+});
 
 lineMenu.chooseIntoSubmenu('mtr-line', buildLineKeyboard, stationMenu, {
   columns: 1,
 });
-lineMenu.manualRow(createNavButtons());
 
-stationMenu.choose('mtr-station', buildStationKeyboard, {
-  do: async (ctx, key) => {
-    const [, line] = ctx.match!;
-    const sta = key;
-    const [schedule, slug] = await getSchedule(line, sta);
-
-    if (schedule.status === 0) {
-      handleMTRError(ctx, schedule);
-      return false;
-    }
-
-    const message = getETA(schedule, slug);
-    ctx.answerCbQuery();
-    ctx.reply(message);
-    return false;
-  },
+stationMenu.chooseIntoSubmenu('mtr-station', buildStationKeyboard, etaMenu, {
   columns: 2,
 });
+
+async function displayETA(ctx: BotContext) {
+  const [, line, sta] = ctx.match!;
+  const [schedule, slug] = await getSchedule(line, sta);
+
+  if (schedule.status === 0) {
+    handleMTRError(ctx, schedule);
+    return '未能提供到站時間預告';
+  }
+
+  const message = getETA(schedule, slug);
+  return message;
+}
+
+etaMenu.manualRow(createNavButtons());
+lineMenu.manualRow(createNavButtons());
 stationMenu.manualRow(createNavButtons());
 
 const middleware = new MenuMiddleware('/', lineMenu);
