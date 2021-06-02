@@ -238,7 +238,9 @@ async function handleRouteNumber(ctx: BotContext) {
 
   switch (companies.length) {
     case 0:
-      return ctx.reply('無此路線❌');
+      await ctx.reply('無此路線❌');
+      routeQuestion.replyWithMarkdown(ctx, '輸入巴士路線🚆');
+      return;
     case 1:
     // const [company] = companies;
     // Route list or stop directly

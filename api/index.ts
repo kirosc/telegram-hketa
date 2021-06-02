@@ -6,12 +6,7 @@ import env from '@src/constant';
 import { SceneSession } from 'telegraf/typings/scenes';
 import { lrtMenu, mtrMenu } from '@scenes/index';
 import { errorHandler } from '@services/telegram';
-import {
-  deleteMenuFromContext,
-  getMenuOfPath,
-  MenuMiddleware,
-  MenuTemplate,
-} from 'telegraf-inline-menu';
+import { MenuMiddleware, MenuTemplate } from 'telegraf-inline-menu';
 import { companyMenu, routeQuestion } from '@scenes/bus';
 import { BusCompanyCode } from '@services/bus/common';
 import { KMBRoute, KMBRouteStop } from '@services/bus/kmb';
@@ -69,11 +64,8 @@ mainMenu.submenu('地鐵', 'mtr', mtrMenu);
 //   },
 // });
 mainMenu.interact('巴士', 'bus-route', {
-  do: async (ctx, path) => {
-    const text = '輸入巴士路線🚆';
-    const additionalState = getMenuOfPath(path);
-    deleteMenuFromContext(ctx);
-    routeQuestion.replyWithMarkdown(ctx, text, additionalState);
+  do: async (ctx) => {
+    routeQuestion.replyWithMarkdown(ctx, '輸入巴士路線🚆');
     return false;
   },
 });
