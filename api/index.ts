@@ -71,6 +71,10 @@ mainMenu.interact('巴士', 'bus-route', {
 });
 mainMenu.submenu('上次查詢的巴士路線', 'bus-company', companyMenu, {
   hide: (ctx) => {
+    if (ctx.match && ctx.match[0] === '/') {
+      return true;
+    }
+
     return !ctx.session || !ctx.session.bus.companies;
   },
 });
