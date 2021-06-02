@@ -5,7 +5,7 @@ import {
   BusRouteStop,
   BusStop,
 } from '@interfaces/bus';
-import { KMB_ENDPOINT } from '@src/constant';
+import { KMB_ENDPOINT } from '@root/constant';
 import axios from 'axios';
 import _ from 'lodash';
 import { BOUND_MAPPING } from './common';

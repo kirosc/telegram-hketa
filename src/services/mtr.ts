@@ -1,5 +1,5 @@
 import { MTRRoute, MTRSchedule, MTRStation } from '@interfaces/mtr';
-import { MTR_ENDPOINT, SEPARATOR } from '@src/constant';
+import { MTR_ENDPOINT, SEPARATOR } from '@root/constant';
 import axios from 'axios';
 import { DateTime } from 'luxon';
 import { readJSON } from '@services/io';

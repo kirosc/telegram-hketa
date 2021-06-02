@@ -1,4 +1,4 @@
-import { BotContext } from '@api/index';
+import { BotContext } from '@root/app';
 import { readJSON } from '@services/io';
 import { getETAMessage, getSchedule } from '@services/lrt';
 import { createNavButtons } from '@services/telegram';

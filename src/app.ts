@@ -1,9 +1,9 @@
 require('dotenv').config();
-import '../src/config/alias';
+import './config/alias';
 import express, { json } from 'express';
 import { Telegraf, session, Context, Scenes } from 'telegraf';
-import env from '@src/constant';
 import { SceneSession } from 'telegraf/typings/scenes';
+import env from '@root/constant';
 import { lrtMenu, mtrMenu } from '@scenes/index';
 import { errorHandler } from '@services/telegram';
 import { MenuMiddleware, MenuTemplate } from 'telegraf-inline-menu';

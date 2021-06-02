@@ -1,5 +1,5 @@
 import { LRTPlatform, LRTRoute, LRTSchedule } from '@interfaces/lrt';
-import { LRT_ENDPOINT, SEPARATOR } from '@src/constant';
+import { LRT_ENDPOINT, SEPARATOR } from '@root/constant';
 import axios from 'axios';
 
 export async function getSchedule(station_id: number): Promise<LRTSchedule> {

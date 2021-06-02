@@ -1,7 +1,7 @@
 import { BusETA } from '@interfaces/bus';
 import { getTimeDiffinMins } from '@services/common';
 import { readJSON } from '@services/io';
-import { SEPARATOR } from '@src/constant';
+import { SEPARATOR } from '@root/constant';
 import _ from 'lodash';
 import { DateTime } from 'luxon';
 

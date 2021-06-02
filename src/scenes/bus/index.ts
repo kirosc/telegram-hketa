@@ -1,4 +1,4 @@
-import { BotContext } from '@api/index';
+import { BotContext } from '@root/app';
 import { createNavButtons } from '@services/telegram';
 import { MenuTemplate, replyMenuToContext } from 'telegraf-inline-menu';
 import {
@@ -13,7 +13,7 @@ import {
   getKMBRouteList,
   getKMBRouteStopDetail,
 } from '@services/bus/kmb';
-import { BusCompany } from '@src/constant';
+import { BusCompany } from '@root/constant';
 import {
   getBravoBusETA,
   getBravoBusRoute,

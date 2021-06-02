@@ -1,4 +1,4 @@
-import { BotContext } from '@api/index';
+import { BotContext } from '@root/app';
 import { createBackMainMenuButtons } from 'telegraf-inline-menu/dist/source';
 
 export async function errorHandler(error: unknown, ctx: BotContext) {

@@ -1,5 +1,5 @@
 import { getTimeDiffinMins } from '@services/common';
-import { NLB_ENDPOINT, SEPARATOR } from '@src/constant';
+import { NLB_ENDPOINT, SEPARATOR } from '@root/constant';
 import axios from 'axios';
 import _ from 'lodash';
 import { DateTime } from 'luxon';

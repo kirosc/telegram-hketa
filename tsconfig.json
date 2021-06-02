@@ -66,13 +66,11 @@
     /* Advanced Options */
     "skipLibCheck": true /* Skip type checking of declaration files. */,
     "forceConsistentCasingInFileNames": true, /* Disallow inconsistently-cased references to the same file. */
-    "baseUrl": "./",
+    "baseUrl": "./src",
     "paths": {
-      "@api/*": ["api/*"],
-      "@scenes/*": ["src/scenes/*"],
-      "@services/*": ["src/services/*"],
-      "@interfaces/*": ["src/interfaces/*"],
-      "@src/*": ["src/*"],
+      "@scenes/*": ["scenes/*"],
+      "@services/*": ["services/*"],
+      "@interfaces/*": ["interfaces/*"],
     //   "@lib/*": ["lib/*"],
     //   "@errors/*": ["errors/*"],
     //   "@classes/*": ["classes/*"],
