@@ -5,12 +5,10 @@
     "node": "12.x"
   },
   "description": "A telegram bot to get the ETA of HK public transport.",
-  "main": "index.js",
+  "main": "dist/src/app.js",
   "scripts": {
-    "start": "NODE_ENV=production node dist/api/index.js",
+    "start": "NODE_ENV=production node dist/src/app.js",
     "dev": "NODE_ENV=development ts-node-dev --respawn --watch *.ts",
-    "prod": "now --prod --token=$NOW_TOKEN",
-    "local": "now dev",
     "build": "npm run update:route && rm -rf dist && tsc && cp -r data dist/",
     "test": "jest",
     "test:watch": "jest --watch",
