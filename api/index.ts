@@ -17,6 +17,7 @@ import { BusCompanyCode } from '@services/bus/common';
 import { KMBRoute } from '@services/bus/kmb';
 import { BravoBusRoute } from '@services/bus/bravo';
 import { Settings } from 'luxon';
+import { NLBRoute } from '@services/bus/nlb';
 interface SessionData extends SceneSession {
   bus: {
     route?: string;
@@ -28,6 +29,9 @@ interface SessionData extends SceneSession {
     bravo: {
       circular?: boolean;
       route?: BravoBusRoute;
+    };
+    nlb: {
+      route?: NLBRoute[];
     };
   };
 }

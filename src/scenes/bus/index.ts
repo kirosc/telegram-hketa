@@ -20,6 +20,12 @@ import {
   getBravoBusRouteStopDetail,
   isCircular,
 } from '@services/bus/bravo';
+import {
+  getNLBETA,
+  getNLBETAMessage,
+  listNLBRouteStop,
+  listNLBSubRoute,
+} from '@services/bus/nlb';
 
 enum Prefix {
   ENTRY_COMPANY = 'bus-company',
@@ -62,6 +68,12 @@ const etaMenu = new MenuTemplate<BotContext>(async (ctx) => {
       const [, , , bravoStopId] = ctx.match!;
       const bravoEtas = await getBravoBusETA(company, bravoStopId, route);
       message = getETAMessage(bravoEtas);
+
+      break;
+    case BusCompany.NLB:
+      const [, , routeId, nlbStopId] = ctx.match!;
+      const nlbEtas = await getNLBETA(routeId, nlbStopId);
+      message = getNLBETAMessage(nlbEtas);
 
       break;
     default:
@@ -130,24 +142,30 @@ async function buildRouteListKeyboard(ctx: BotContext) {
     throw new Error('route is empty');
   }
 
+  await fetchRouteList(ctx, company as any, route);
+
   switch (company) {
     case BusCompany.KMB:
-      await fetchRouteList(ctx, company, route);
       const routeList = ctx.session.bus.kmb.routeList!;
       keyboard = routeList.map((r) => [
         `${r.bound},${r.service_type}`,
         `${r.orig_tc} > ${r.dest_tc}`,
       ]);
+
       break;
     case BusCompany.CTB:
     case BusCompany.NWFB:
-      await fetchRouteList(ctx, company, route);
       const { orig_tc, dest_tc } = ctx.session.bus.bravo.route!;
       keyboard = [['O', dest_tc]];
 
       if (!ctx.session.bus.bravo.circular) {
         keyboard.push(['I', orig_tc]);
       }
+
+      break;
+    case BusCompany.NLB:
+      const routes = ctx.session.bus.nlb.route!;
+      keyboard = routes?.map((r) => [r.routeId, r.routeName_c]);
 
       break;
     default:
@@ -192,6 +210,12 @@ async function buildStopKeyboard(ctx: BotContext) {
       keyboard = bravoStops.map((s) => [s.stop, s.name_tc]);
 
       break;
+    case BusCompany.NLB:
+      const [, , routeId] = ctx.match!;
+      const nlbStops = await listNLBRouteStop(routeId);
+      keyboard = nlbStops.map((s) => [s.stopId, s.stopName_c]);
+
+      break;
     default:
       ctx.reply('Not implemented');
   }
@@ -209,7 +233,7 @@ async function handleRouteNumber(ctx: BotContext) {
   const companies = getRouteCompany(route);
   ctx.session = {
     __scenes: {},
-    bus: { route, companies, kmb: {}, bravo: {} },
+    bus: { route, companies, kmb: {}, bravo: {}, nlb: {} },
   };
 
   switch (companies.length) {
@@ -251,7 +275,7 @@ async function fetchRouteList(
         ctx.session.bus.kmb.routeList = routeList;
       }
 
-      return;
+      break;
     case BusCompany.CTB:
     case BusCompany.NWFB:
       if (!ctx.session.bus.bravo.circular) {
@@ -259,7 +283,11 @@ async function fetchRouteList(
         ctx.session.bus.bravo.route = await getBravoBusRoute(company, route);
       }
 
-      return;
+      break;
+    case BusCompany.NLB:
+      ctx.session.bus.nlb.route = await listNLBSubRoute(route);
+
+      break;
     default:
       return ctx.reply('Not implemented❌');
   }

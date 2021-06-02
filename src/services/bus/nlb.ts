@@ -100,7 +100,7 @@ export function getNLBETAMessage(etas: NLBETA[]) {
       const schedule = departed === 1 ? '' : '未從總站開出';
       return `${
         idx + 1
-      }. ${etaMins} 分鐘  (${formattedTime}) ${additinoalIcon} ${schedule}`;
+      }. ${etaMins} 分鐘  (${formattedTime}) ${schedule} ${additinoalIcon}`;
     }
   );
 
