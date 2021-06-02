@@ -1,5 +1,9 @@
 import { LRTPlatform, LRTRoute, LRTSchedule } from '@interfaces/lrt';
-import { getETA, getPlatformMessage, getRouteMessage } from '@services/lrt';
+import {
+  getETAMessage,
+  getPlatformMessage,
+  getRouteMessage,
+} from '@services/lrt';
 
 describe('test can getETA', () => {
   const schedule: LRTSchedule = {
@@ -80,7 +84,7 @@ describe('test can getETA', () => {
   };
 
   test('Can get ETA', () => {
-    expect(getETA(schedule)).toEqual(`預計到站時間如下⌚
+    expect(getETAMessage(schedule)).toEqual(`預計到站時間如下⌚
 ————————————————————
 月台 - 1
 610 - 元朗 - 1卡 - 即將抵達
@@ -95,7 +99,7 @@ describe('test can getETA', () => {
 
   test('Can return error message', () => {
     schedule.status = 0;
-    expect(getETA(schedule)).toEqual('港鐵未能提供到站時間');
+    expect(getETAMessage(schedule)).toEqual('港鐵未能提供到站時間');
   });
 });
 

@@ -1,6 +1,6 @@
 import { BotContext } from '@api/index';
 import { readJSON } from '@services/io';
-import { getETA, getSchedule } from '@services/lrt';
+import { getETAMessage, getSchedule } from '@services/lrt';
 import { createNavButtons } from '@services/telegram';
 import { Scenes } from 'telegraf';
 import { MenuMiddleware, MenuTemplate } from 'telegraf-inline-menu';
@@ -16,25 +16,27 @@ interface Zone {
 
 const zones: Zone[] = readJSON('station-lrt');
 
+const etaMenu = new MenuTemplate<BotContext>(displayETA);
 const zoneMenu = new MenuTemplate<BotContext>((ctx) => '選擇區域🚆');
 const stationMenu = new MenuTemplate<BotContext>((ctx) => '選擇車站🚉');
 
-zoneMenu.chooseIntoSubmenu('lrt-zone', buildZoneKeyboard, stationMenu, {
-  columns: 2,
-});
-zoneMenu.manualRow(createNavButtons());
-
-stationMenu.choose('lrt-station', buildStationKeyboard, {
-  do: async (ctx, key) => {
-    const stationId = parseInt(key);
-    const schedule = await getSchedule(stationId);
-    const message = getETA(schedule);
-    ctx.answerCbQuery();
-    ctx.reply(message);
-    return false;
+etaMenu.interact('重新整理 🔄', 'f5', {
+  do: async (ctx) => {
+    ctx.answerCbQuery('已重新整理');
+    return true;
   },
+});
+
+zoneMenu.chooseIntoSubmenu('zone', buildZoneKeyboard, stationMenu, {
   columns: 2,
 });
+
+stationMenu.chooseIntoSubmenu('station', buildStationKeyboard, etaMenu, {
+  columns: 2,
+});
+
+etaMenu.manualRow(createNavButtons());
+zoneMenu.manualRow(createNavButtons());
 stationMenu.manualRow(createNavButtons());
 
 const middleware = new MenuMiddleware('/', zoneMenu);
@@ -44,6 +46,13 @@ scene.enter((ctx) => middleware.replyToContext(ctx));
 scene.leave((ctx) => ctx.reply('Bye'));
 
 scene.use(middleware);
+
+async function displayETA(ctx: BotContext) {
+  const [, , stationId] = ctx.match!;
+  const schedule = await getSchedule(parseInt(stationId));
+  const message = getETAMessage(schedule);
+  return message;
+}
 
 function buildZoneKeyboard(ctx: BotContext) {
   return new Map<string, string>(zones.map(({ zone }) => [zone, zone]));

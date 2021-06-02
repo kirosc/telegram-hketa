@@ -10,7 +10,7 @@ export async function getSchedule(station_id: number): Promise<LRTSchedule> {
   return res.data;
 }
 
-export function getETA(schedule: LRTSchedule): string {
+export function getETAMessage(schedule: LRTSchedule): string {
   const message = `預計到站時間如下⌚\n${SEPARATOR}\n`;
 
   if (schedule.status === 0) {
