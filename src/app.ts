@@ -101,6 +101,21 @@ bot.command('help', (ctx) =>
   )
 );
 
+bot.telegram.setMyCommands([
+  {
+    command: 'start',
+    description: '開始查詢',
+  },
+  {
+    command: 'help',
+    description: '可使用的指令',
+  },
+  {
+    command: 'contribute',
+    description: '一同開發此bot',
+  },
+]);
+
 const app = express();
 app.use(json());
 
