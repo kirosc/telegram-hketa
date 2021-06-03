@@ -1,4 +1,4 @@
 import { Settings } from 'luxon';
 
 Settings.defaultZoneName = 'Asia/Hong_Kong';
-Settings.defaultLocale = 'en-UK';
+Settings.defaultLocale = 'en-GB';
