@@ -6,7 +6,7 @@ Telegram Bot to Check Hong Kong Public Transport ETA<br>
 <br>
 
 ![GitHub](https://img.shields.io/github/license/kirosc/tg-hketa)
-[![Build Status](https://travis-ci.com/kirosc/telegram-hketa.svg?branch=master)](https://travis-ci.com/kirosc/telegram-hketa)
+![Build Status](https://github.com/kirosc/telegram-hketa/actions/workflows/main.yml/badge.svg?branch=master)
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fkirosc%2Ftg-hketa.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fkirosc%2Ftg-hketa?ref=badge_shield)
 ![Monthly User](https://kd1rv712zf.execute-api.ap-east-1.amazonaws.com/monthly-user-count)
 [![@HK_ETA_BOT](https://img.shields.io/badge/%F0%9F%92%AC%20Telegram-Bot-blue)](https://t.me/HK_ETA_BOT)
