@@ -5,7 +5,7 @@ import path from 'path';
 import _ from 'lodash';
 import { readJSON } from './io';
 import { BRAVO_BUS_ENDPOINT, KMB_ENDPOINT, NLB_ENDPOINT } from '@root/constant';
-import { listGMBRoutes } from '@services/bus/GMB';
+import { listGMBRoutes } from '@services/bus/gmb';
 
 // Collect and index NLB routeId by route number
 async function getNLBRotues() {

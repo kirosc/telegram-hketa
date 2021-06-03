@@ -211,7 +211,6 @@ async function buildSubRouteKeyboard(ctx: BotContext) {
 async function buildStopKeyboard(ctx: BotContext) {
   const { route } = ctx.session.bus;
   const [, company] = ctx.match!; // FIXME: maybe null if come from replyMenuToContext
-  // const routeList = ctx.match!.pop();
 
   let keyboard: Array<[string, string]> = [];
 
@@ -253,7 +252,10 @@ async function buildStopKeyboard(ctx: BotContext) {
     case BusCompany.GMB_NT:
       const [, , routeIdAndRouteSeq] = ctx.match!;
       const [gmbRouteId, routeSeq] = routeIdAndRouteSeq.split(',');
-      const gmbStops = await listGMBRouteStops(gmbRouteId, routeSeq); // FIXME: get from session
+      const gmbStops =
+        ctx.session.bus.gmb.stops ??
+        (await listGMBRouteStops(gmbRouteId, routeSeq));
+      ctx.session.bus.gmb.stops = gmbStops;
       keyboard = gmbStops.map((s) => [s.stop_seq.toString(), s.name_tc]);
 
       break;
@@ -315,15 +317,19 @@ async function fetchRouteList(
 
       break;
     case BusCompany.NLB:
-      ctx.session.bus.nlb.routes = await listNLBSubRoute(route);
+      if (!ctx.session.bus.nlb.routes) {
+        ctx.session.bus.nlb.routes = await listNLBSubRoute(route);
+      }
 
       break;
 
     case BusCompany.GMB_HKI:
     case BusCompany.GMB_KLN:
     case BusCompany.GMB_NT:
-      const region = getRegion(company);
-      ctx.session.bus.gmb.routes = await retrieveGMBRoute(region, route);
+      if (!ctx.session.bus.gmb.routes) {
+        const region = getRegion(company);
+        ctx.session.bus.gmb.routes = await retrieveGMBRoute(region, route);
+      }
 
       break;
     default:
