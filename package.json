@@ -1,6 +1,6 @@
 {
   "name": "tg-hketa",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "engines": {
     "node": "16.x"
   },
@@ -34,6 +34,7 @@
     "@types/lodash": "^4.14.170",
     "@types/luxon": "^1.26.5",
     "axios": "^0.21.1",
+    "cron": "^1.8.2",
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
     "lodash": "^4.17.21",
@@ -48,6 +49,7 @@
     "universal-analytics": "^0.4.23"
   },
   "devDependencies": {
+    "@types/cron": "^1.7.2",
     "@types/universal-analytics": "^0.4.4",
     "husky": "^6.0.0",
     "jest": "^27.0.4",

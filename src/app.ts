@@ -1,5 +1,6 @@
 require('dotenv').config();
 import './config/alias';
+import '@root/cronjob';
 import express, { json } from 'express';
 import { Telegraf, session, Context, Scenes } from 'telegraf';
 import { SceneSession } from 'telegraf/typings/scenes';

@@ -21,7 +21,7 @@ async function getNLBRotues() {
   );
 }
 
-async function getBusRoutes() {
+export async function getBusRoutes() {
   const ctbJob = axios.get(`${BRAVO_BUS_ENDPOINT}/route/CTB`);
   const nwfbJob = axios.get(`${BRAVO_BUS_ENDPOINT}/route/NWFB`);
   const kmbJob = axios.get(`${KMB_ENDPOINT}/route`);
