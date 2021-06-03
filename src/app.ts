@@ -18,6 +18,7 @@ import {
 import { Settings } from 'luxon';
 import { NLBRoute, NLBStop } from '@services/bus/nlb';
 import { BusStop } from '@interfaces/bus';
+import analytics from '@services/analytics';
 
 interface SessionData extends SceneSession {
   bus: {
@@ -73,6 +74,7 @@ const menuMiddleware = new MenuMiddleware('/', mainMenu);
 bot.start((ctx) => menuMiddleware.replyToContext(ctx));
 
 bot.use(session());
+bot.use(analytics.captureStartEvent);
 bot.use(menuMiddleware);
 bot.use(routeQuestion.middleware());
 

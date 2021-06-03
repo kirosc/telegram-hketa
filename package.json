@@ -48,6 +48,7 @@
     "universal-analytics": "^0.4.23"
   },
   "devDependencies": {
+    "@types/universal-analytics": "^0.4.4",
     "husky": "^6.0.0",
     "jest": "^27.0.3",
     "lint-staged": "^11.0.0",
