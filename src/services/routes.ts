@@ -48,14 +48,6 @@ async function getBusRoutes() {
 
   const { MTR } = readJSON('routes-mtr');
 
-  // let KMBRoutes = new Set(kmbRoutes);
-  // let LWBRoutes = new Set(lwbRoutes);
-
-  // console.log(kmbRoutes.length, KMBRoutes.size);
-  // console.log(lwbRoutes.length, LWBRoutes.size);
-  // console.log(lwbRoutes);
-  // console.log(LWBRoutes);
-
   const routes = {
     CTB: [...ctbRoutes],
     NWFB: [...nwfbRoutes],
