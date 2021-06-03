@@ -1,6 +1,8 @@
 import { BusResponse } from '@interfaces/bus';
 import { GMB_ENDPOINT } from '@root/constant';
 import axios from 'axios';
+import _ from 'lodash';
+import { BusCompanyCode } from './common';
 
 type Region = 'HKI' | 'KLN' | 'NT';
 
@@ -8,7 +10,7 @@ interface GMBResponse<T> extends BusResponse {
   data: T;
 }
 
-interface GMBRoutes {
+export interface GMBRoutes {
   routes: Record<Region, Array<string>>;
 }
 
@@ -30,23 +32,23 @@ interface GMBDirection {
   dest_tc: string;
   dest_sc: string;
   dest_en: string;
-  remark_tc: string | null;
-  remark_sc: string | null;
-  remark_en: string | null;
+  remarks_tc: string | null;
+  remarks_sc: string | null;
+  remarks_en: string | null;
   headways: GMBHeadway[];
   data_timestamp: string;
 }
 
-interface GMBRoute {
+export interface GMBRoute {
   route_id: number;
   description_tc: string;
   description_sc: string;
   description_en: string;
-  direction: GMBDirection[];
+  directions: GMBDirection[];
   data_timestamp: string;
 }
 
-interface GMBRouteStop {
+export interface GMBRouteStop {
   stop_seq: number;
   stop_id: number;
   name_tc: string;
@@ -54,7 +56,7 @@ interface GMBRouteStop {
   name_en: string;
 }
 
-interface GMBETA {
+export interface GMBETA {
   eta_seq: number;
   diff: number;
   remarks_tc: string;
@@ -90,4 +92,29 @@ export async function listGMBRouteStopETAs(routeId: number, stopId: number) {
     `${GMB_ENDPOINT}/eta/route-stop/${routeId}/${stopId}`
   );
   return res.data.data;
+}
+
+export function getRegion(company: BusCompanyCode): Region {
+  const [, region] = company.split('_');
+
+  if (['HKI', 'KLN', 'NT'].includes(region)) {
+    return region as Region;
+  }
+
+  throw new Error(`${company} is not in one of the GMB regions`);
+}
+
+export function buildGMBSubRouteKeyboard(routes: GMBRoute[]) {
+  const listOfKeyboards = routes.map(
+    ({ route_id, directions, description_tc }) => {
+      const description = description_tc === '正常班次' ? '' : description_tc;
+
+      return directions.map(({ route_seq, orig_tc, dest_tc }) => [
+        `${route_id},${route_seq}`,
+        `${orig_tc} > ${dest_tc} ${description}`,
+      ]);
+    }
+  );
+
+  return _.flatten(listOfKeyboards) as [string, string][];
 }

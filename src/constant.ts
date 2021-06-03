@@ -29,6 +29,9 @@ export enum BusCompany {
   NWFB = 'NWFB',
   NLB = 'NLB',
   MTR = 'MTR',
+  GMB_HKI = 'GMB_HKI',
+  GMB_KLN = 'GMB_KLN',
+  GMB_NT = 'GMB_NT',
 }
 
 const PORT = process.env.PORT;

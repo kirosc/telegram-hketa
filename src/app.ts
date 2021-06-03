@@ -19,6 +19,7 @@ import { Settings } from 'luxon';
 import { NLBRoute, NLBStop } from '@services/bus/nlb';
 import { BusStop } from '@interfaces/bus';
 import analytics from '@services/analytics';
+import { GMBRoute } from '@services/bus/GMB';
 
 interface SessionData extends SceneSession {
   bus: {
@@ -37,6 +38,9 @@ interface SessionData extends SceneSession {
     nlb: {
       routes?: NLBRoute[];
       stops?: NLBStop[];
+    };
+    gmb: {
+      routes?: GMBRoute[];
     };
   };
 }

@@ -5,7 +5,15 @@ import { SEPARATOR } from '@root/constant';
 import _ from 'lodash';
 import { DateTime } from 'luxon';
 
-export type BusCompanyCode = 'CTB' | 'NWFB' | 'KMB' | 'NLB' | 'MTR';
+export type BusCompanyCode =
+  | 'CTB'
+  | 'NWFB'
+  | 'KMB'
+  | 'NLB'
+  | 'MTR'
+  | 'GMB_HKI'
+  | 'GMB_KLN'
+  | 'GMB_NT';
 type Route = Record<string, string[]>;
 
 export const BOUND_MAPPING = {

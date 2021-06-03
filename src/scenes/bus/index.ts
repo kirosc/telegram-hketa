@@ -26,6 +26,11 @@ import {
   listNLBRouteStop,
   listNLBSubRoute,
 } from '@services/bus/nlb';
+import {
+  buildGMBSubRouteKeyboard,
+  getRegion,
+  retrieveGMBRoute,
+} from '@services/bus/GMB';
 
 enum Prefix {
   ENTRY_COMPANY = 'bus-company',
@@ -163,8 +168,15 @@ async function buildSubRouteKeyboard(ctx: BotContext) {
 
       break;
     case BusCompany.NLB:
-      const routes = ctx.session.bus.nlb.routes!;
-      keyboard = routes?.map((r) => [r.routeId, r.routeName_c]);
+      const nlbRoutes = ctx.session.bus.nlb.routes!;
+      keyboard = nlbRoutes.map((r) => [r.routeId, r.routeName_c]);
+
+      break;
+    case BusCompany.GMB_HKI:
+    case BusCompany.GMB_KLN:
+    case BusCompany.GMB_NT:
+      const gmbRoutes = ctx.session.bus.gmb.routes!;
+      keyboard = buildGMBSubRouteKeyboard(gmbRoutes);
 
       break;
     default:
@@ -232,7 +244,7 @@ async function handleRouteNumber(ctx: BotContext) {
   const companies = getRouteCompany(route);
   ctx.session = {
     __scenes: {},
-    bus: { route, companies, kmb: {}, bravo: {}, nlb: {} },
+    bus: { route, companies, kmb: {}, bravo: {}, nlb: {}, gmb: {} },
   };
 
   switch (companies.length) {
@@ -274,6 +286,14 @@ async function fetchRouteList(
       break;
     case BusCompany.NLB:
       ctx.session.bus.nlb.routes = await listNLBSubRoute(route);
+
+      break;
+
+    case BusCompany.GMB_HKI:
+    case BusCompany.GMB_KLN:
+    case BusCompany.GMB_NT:
+      const region = getRegion(company);
+      ctx.session.bus.gmb.routes = await retrieveGMBRoute(region, route);
 
       break;
     default:
