@@ -65,6 +65,12 @@ export interface GMBETA {
   timestamp: string;
 }
 
+interface GMBETAData {
+  enabled: boolean; // Whether the ETA service is enabled for this route-stop combination
+  stop_id: number;
+  eta: GMBETA[];
+}
+
 /**
  * Get the list of routes by region
  */
@@ -81,14 +87,14 @@ export async function retrieveGMBRoute(region: Region, route: string) {
 }
 
 export async function listGMBRouteStops(routeId: number, routeSeq: number) {
-  const res = await axios.get<GMBResponse<GMBRouteStop[]>>(
+  const res = await axios.get<GMBResponse<{ route_stops: GMBRouteStop[] }>>(
     `${GMB_ENDPOINT}/route-stop/${routeId}/${routeSeq}`
   );
-  return res.data.data;
+  return res.data.data.route_stops;
 }
 
 export async function listGMBRouteStopETAs(routeId: number, stopId: number) {
-  const res = await axios.get<GMBResponse<GMBETA[]>>(
+  const res = await axios.get<GMBResponse<GMBETAData>>(
     `${GMB_ENDPOINT}/eta/route-stop/${routeId}/${stopId}`
   );
   return res.data.data;

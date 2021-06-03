@@ -28,9 +28,10 @@ import {
 } from '@services/bus/nlb';
 import {
   buildGMBSubRouteKeyboard,
+  listGMBRouteStops,
   getRegion,
   retrieveGMBRoute,
-} from '@services/bus/GMB';
+} from '@services/bus/gmb';
 
 enum Prefix {
   ENTRY_COMPANY = 'bus-company',
@@ -220,11 +221,22 @@ async function buildStopKeyboard(ctx: BotContext) {
 
       break;
     case BusCompany.NLB:
-      const [, , routeId] = ctx.match!;
+      const [, , nlbRouteId] = ctx.match!;
       const nlbStops =
-        ctx.session.bus.nlb.stops ?? (await listNLBRouteStop(routeId));
+        ctx.session.bus.nlb.stops ?? (await listNLBRouteStop(nlbRouteId));
       ctx.session.bus.nlb.stops = nlbStops;
       keyboard = nlbStops.map((s) => [s.stopId, s.stopName_c]);
+
+      break;
+    case BusCompany.GMB_HKI:
+    case BusCompany.GMB_KLN:
+    case BusCompany.GMB_NT:
+      const [, , routeIdAndRouteSeq] = ctx.match!;
+      const [gmbRouteId, routeSeq] = routeIdAndRouteSeq
+        .split(',')
+        .map((s) => parseInt(s));
+      const gmbStops = await listGMBRouteStops(gmbRouteId, routeSeq); // FIXME: get from session
+      keyboard = gmbStops.map((s) => [s.stop_id.toString(), s.name_tc]);
 
       break;
     default:
