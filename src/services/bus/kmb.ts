@@ -5,7 +5,7 @@ import {
   BusRouteStop,
   BusStop,
 } from '@interfaces/bus';
-import { KMB_ENDPOINT } from '@root/constant';
+import { GMB_ENDPOINT } from '@root/constant';
 import axios from 'axios';
 import _ from 'lodash';
 import { BOUND_MAPPING } from './common';
@@ -35,7 +35,7 @@ export interface KMBETA extends BusETA {
  * @param route Route, e.g. 11
  */
 export async function getKMBRouteList(route: string) {
-  const res = await axios.get<KMBResponse<KMBRoute>>(`${KMB_ENDPOINT}/route`);
+  const res = await axios.get<KMBResponse<KMBRoute>>(`${GMB_ENDPOINT}/route`);
 
   return res.data.data.filter((r) => r.route === route);
 }
@@ -53,7 +53,7 @@ export async function getKMBRouteStop(
   service_type: string
 ) {
   const res = await axios.get<KMBResponse<KMBRouteStop>>(
-    `${KMB_ENDPOINT}/route-stop/${route}/${BOUND_MAPPING[bound]}/${service_type}`
+    `${GMB_ENDPOINT}/route-stop/${route}/${BOUND_MAPPING[bound]}/${service_type}`
   );
 
   return res.data.data.filter((r) => r.route === route);
@@ -63,7 +63,7 @@ export async function getKMBRouteStop(
  * Get all the stops
  */
 export async function getKMBStopList() {
-  const res = await axios.get<KMBResponse<BusStop>>(`${KMB_ENDPOINT}/stop`);
+  const res = await axios.get<KMBResponse<BusStop>>(`${GMB_ENDPOINT}/stop`);
 
   return res.data.data;
 }
@@ -104,7 +104,7 @@ export async function getKMBETA(
   stopId: string
 ) {
   const res = await axios.get<KMBResponse<KMBETA>>(
-    `${KMB_ENDPOINT}/eta/${stopId}/${route}/${service_type}`
+    `${GMB_ENDPOINT}/eta/${stopId}/${route}/${service_type}`
   );
 
   return res.data.data;

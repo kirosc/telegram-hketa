@@ -1,9 +1,11 @@
+import '../config/alias';
 import axios from 'axios';
 import fs from 'fs';
 import path from 'path';
 import _ from 'lodash';
 import { readJSON } from './io';
 import { BRAVO_BUS_ENDPOINT, KMB_ENDPOINT, NLB_ENDPOINT } from '@root/constant';
+import { listGMBRoutes } from '@services/bus/GMB';
 
 // Collect and index NLB routeId by route number
 async function getNLBRotues() {
@@ -24,12 +26,14 @@ async function getBusRoutes() {
   const nwfbJob = axios.get(`${BRAVO_BUS_ENDPOINT}/route/NWFB`);
   const kmbJob = axios.get(`${KMB_ENDPOINT}/route`);
   const nlbJob = axios.get(`${NLB_ENDPOINT}/route.php?action=list`);
+  const gmbJob = listGMBRoutes();
 
-  const [ctb, nwfb, kmb, nlb] = await Promise.all([
+  const [ctb, nwfb, kmb, nlb, gmbRoutes] = await Promise.all([
     ctbJob,
     nwfbJob,
     kmbJob,
     nlbJob,
+    gmbJob,
   ]);
 
   const ctbRoutes = new Set(ctb.data.data.map((d) => d.route));
@@ -44,6 +48,9 @@ async function getBusRoutes() {
     NWFB: [...nwfbRoutes],
     KMB: [...kmbRoutes],
     NLB: [...nlbRoutes],
+    GMB_HKI: gmbRoutes['HKI'],
+    GMB_KLN: gmbRoutes['KLN'],
+    GMB_NT: gmbRoutes['NT'],
     MTR,
   };
 
@@ -53,7 +60,5 @@ async function getBusRoutes() {
     'utf-8'
   );
 }
-
-async function getMinibusRoutes() {}
 
 getBusRoutes();

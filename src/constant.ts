@@ -2,7 +2,8 @@ export const SEPARATOR = '——————————————————
 
 // GOV
 export const DATA_GOV_ENDPOINT = 'https://rt.data.gov.hk/v1/transport';
-export const ETABUS_GOV_ENDPOINT = 'https://data.etabus.gov.hk/v1/transport';
+export const ETABUS_GOV_ENDPOINT = 'https://data.etabus.gov.hk';
+export const ETAGMB_GOV_ENDPOINT = 'https://data.etagmb.gov.hk';
 
 // MTR
 export const MTR_ENDPOINT = `${DATA_GOV_ENDPOINT}/mtr`;
@@ -11,13 +12,16 @@ export const MTR_ENDPOINT = `${DATA_GOV_ENDPOINT}/mtr`;
 export const LRT_ENDPOINT = `${MTR_ENDPOINT}/lrt`;
 
 // KMB
-export const KMB_ENDPOINT = 'https://data.etabus.gov.hk/v1/transport/kmb';
+export const KMB_ENDPOINT = `${ETABUS_GOV_ENDPOINT}/v1/transport/kmb`;
 
 // Bravo Bus
 export const BRAVO_BUS_ENDPOINT = `${DATA_GOV_ENDPOINT}/citybus-nwfb`;
 
 // NLB
 export const NLB_ENDPOINT = `${DATA_GOV_ENDPOINT}/nlb`;
+
+// Green Minibus
+export const GMB_ENDPOINT = `${ETAGMB_GOV_ENDPOINT}`;
 
 export enum BusCompany {
   KMB = 'KMB',
