@@ -18,6 +18,7 @@ import {
 import { Settings } from 'luxon';
 import { NLBRoute, NLBStop } from '@services/bus/nlb';
 import { BusStop } from '@interfaces/bus';
+
 interface SessionData extends SceneSession {
   bus: {
     route?: string;
