@@ -94,6 +94,7 @@ const stopMenu = new MenuTemplate<BotContext>(async (ctx) => {
 });
 stopMenu.chooseIntoSubmenu(Prefix.STOP, buildStopKeyboard, etaMenu, {
   columns: 2,
+  maxRows: 40,
 });
 
 const routeListMenu = new MenuTemplate<BotContext>(async (ctx) => {
