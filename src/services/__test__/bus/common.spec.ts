@@ -98,4 +98,9 @@ describe('test can getETAMessage', () => {
 2. 14 分鐘  (14:46) - 往 九龍站 - 受阻於黃大仙總站
 3. 27 分鐘  (14:58) - 往 九龍站 - 原定班次`);
   });
+
+  test('Can get empty eta message', () => {
+    const etas = [];
+    expect(getETAMessage(etas)).toEqual('尾班車已過或未有到站時間提供');
+  });
 });

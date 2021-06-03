@@ -34,6 +34,10 @@ export function getRouteCompany(route: string): BusCompanyCode[] {
 }
 
 export function getETAMessage(etas: BusETA[]) {
+  if (etas.length === 0) {
+    return '尾班車已過或未有到站時間提供';
+  }
+
   const message = `預計到站時間如下⌚\n${SEPARATOR}\n`;
 
   const etasMessage = etas.map(({ eta, eta_seq, dest_tc, rmk_tc }) => {
