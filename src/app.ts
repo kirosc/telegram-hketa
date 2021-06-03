@@ -59,7 +59,7 @@ const mainMenu = new MenuTemplate<BotContext>((ctx) => '選擇查詢的交通工
 
 mainMenu.submenu('輕鐵', 'lrt', lrtMenu);
 mainMenu.submenu('地鐵', 'mtr', mtrMenu);
-mainMenu.interact('巴士', 'bus-route', {
+mainMenu.interact('巴士 & 小巴', 'bus-route', {
   do: async (ctx) => {
     routeQuestion.replyWithMarkdown(ctx, '輸入巴士路線🚆');
     return false;

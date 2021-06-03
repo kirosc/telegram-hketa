@@ -102,7 +102,7 @@ const routeListMenu = new MenuTemplate<BotContext>(async (ctx) => {
 });
 routeListMenu.chooseIntoSubmenu(
   Prefix.ROUTE_LIST,
-  buildRouteListKeyboard,
+  buildSubRouteKeyboard,
   stopMenu,
   {
     columns: 1,
@@ -132,7 +132,7 @@ function buildCompanyNameKeyboard(ctx: BotContext) {
   );
 }
 
-async function buildRouteListKeyboard(ctx: BotContext) {
+async function buildSubRouteKeyboard(ctx: BotContext) {
   const [, company] = ctx.match!; // FIXME: maybe null if come from replyMenuToContext
   const { route } = ctx.session.bus;
   let keyboard: Array<[string, string]> = [];

@@ -14,6 +14,15 @@
   "LWB": {
     "tc_name": "龍運巴士"
   },
+  "GMB_HKI": {
+    "tc_name": "專綫小巴 (港島區)"
+  },
+  "GMB_KLN": {
+    "tc_name": "專綫小巴 (九龍區)"
+  },
+  "GMB_NT": {
+    "tc_name": "專綫小巴 (新界區)"
+  },
   "MTR": {
     "tc_name": "港鐵"
   }
