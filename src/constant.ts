@@ -1,7 +1,8 @@
 export const SEPARATOR = '————————————————————';
 
-// DATA GOV
+// GOV
 export const DATA_GOV_ENDPOINT = 'https://rt.data.gov.hk/v1/transport';
+export const ETABUS_GOV_ENDPOINT = 'https://data.etabus.gov.hk/v1/transport';
 
 // MTR
 export const MTR_ENDPOINT = `${DATA_GOV_ENDPOINT}/mtr`;

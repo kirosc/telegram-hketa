@@ -3,12 +3,11 @@ import fs from 'fs';
 import path from 'path';
 import _ from 'lodash';
 import { readJSON } from './io';
+import { BRAVO_BUS_ENDPOINT, KMB_ENDPOINT, NLB_ENDPOINT } from '@root/constant';
 
 // Collect and index NLB routeId by route number
 async function getNLBRotues() {
-  const res = await axios.get(
-    'https://rt.data.gov.hk/v1/transport/nlb/route.php?action=list'
-  );
+  const res = await axios.get(`${NLB_ENDPOINT}/route.php?action=list`);
 
   const sortedRoutes = _.sortBy(res.data.routes, (r) => parseInt(r.routeId));
   const routes = _.groupBy(sortedRoutes, 'routeNo');
@@ -21,18 +20,10 @@ async function getNLBRotues() {
 }
 
 async function getBusRoutes() {
-  const ctbJob = axios.get(
-    'https://rt.data.gov.hk/v1/transport/citybus-nwfb/route/CTB'
-  );
-  const nwfbJob = axios.get(
-    'https://rt.data.gov.hk/v1/transport/citybus-nwfb/route/NWFB'
-  );
-  const kmbJob = axios.get(
-    'https://data.etabus.gov.hk/v1/transport/kmb/route/'
-  );
-  const nlbJob = axios.get(
-    'https://rt.data.gov.hk/v1/transport/nlb/route.php?action=list'
-  );
+  const ctbJob = axios.get(`${BRAVO_BUS_ENDPOINT}/route/CTB`);
+  const nwfbJob = axios.get(`${BRAVO_BUS_ENDPOINT}/route/NWFB`);
+  const kmbJob = axios.get(`${KMB_ENDPOINT}/route`);
+  const nlbJob = axios.get(`${NLB_ENDPOINT}/route.php?action=list`);
 
   const [ctb, nwfb, kmb, nlb] = await Promise.all([
     ctbJob,
@@ -63,5 +54,6 @@ async function getBusRoutes() {
   );
 }
 
-getNLBRotues();
+async function getMinibusRoutes() {}
+
 getBusRoutes();
