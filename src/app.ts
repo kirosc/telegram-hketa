@@ -46,6 +46,7 @@ export interface BotContext extends Context, Scenes.SceneContext {
 }
 
 Settings.defaultZoneName = 'Asia/Hong_Kong';
+Settings.defaultLocale = 'en-UK';
 
 const { PORT, ENV, TG_TOKEN, TG_DEV_TOKEN } = env;
 
