@@ -31,6 +31,8 @@ import {
   listGMBRouteStops,
   getRegion,
   retrieveGMBRoute,
+  getGMBETAMessage,
+  retrieveGMBRouteStopETAs,
 } from '@services/bus/gmb';
 
 enum Prefix {
@@ -80,6 +82,24 @@ const etaMenu = new MenuTemplate<BotContext>(async (ctx) => {
       const [, , routeId, nlbStopId] = ctx.match!;
       const nlbEtas = await getNLBETA(routeId, nlbStopId);
       message = getNLBETAMessage(nlbEtas);
+
+      break;
+    case BusCompany.GMB_HKI:
+    case BusCompany.GMB_KLN:
+    case BusCompany.GMB_NT:
+      const [, , routeIdAndRouteSeq, stopSeq] = ctx.match!;
+      const [gmbRouteId, gmbRouteSeq] = routeIdAndRouteSeq.split(',');
+      const {
+        enabled,
+        eta: gmbEtas,
+        description_tc,
+      } = await retrieveGMBRouteStopETAs(gmbRouteId, gmbRouteSeq, stopSeq);
+
+      if (!enabled) {
+        return description_tc!;
+      }
+
+      message = getGMBETAMessage(gmbEtas!);
 
       break;
     default:
@@ -232,11 +252,9 @@ async function buildStopKeyboard(ctx: BotContext) {
     case BusCompany.GMB_KLN:
     case BusCompany.GMB_NT:
       const [, , routeIdAndRouteSeq] = ctx.match!;
-      const [gmbRouteId, routeSeq] = routeIdAndRouteSeq
-        .split(',')
-        .map((s) => parseInt(s));
+      const [gmbRouteId, routeSeq] = routeIdAndRouteSeq.split(',');
       const gmbStops = await listGMBRouteStops(gmbRouteId, routeSeq); // FIXME: get from session
-      keyboard = gmbStops.map((s) => [s.stop_id.toString(), s.name_tc]);
+      keyboard = gmbStops.map((s) => [s.stop_seq.toString(), s.name_tc]);
 
       break;
     default:
@@ -261,7 +279,7 @@ async function handleRouteNumber(ctx: BotContext) {
 
   switch (companies.length) {
     case 0:
-      await ctx.reply('無此路線❌');
+      await ctx.reply('無此路線或未有到站時間提供❌');
       routeQuestion.replyWithMarkdown(ctx, '輸入巴士路線🚆');
 
       break;

@@ -1,8 +1,9 @@
 import {
   buildGMBSubRouteKeyboard,
+  getGMBETAMessage,
   getRegion,
   GMBRoute,
-} from '@services/bus/GMB';
+} from '@services/bus/gmb';
 import { BusCompany } from '@root/constant';
 
 describe('test can getRegion', () => {
@@ -277,5 +278,38 @@ describe('test can build GMB Keyboards', () => {
       ['2000972,1', '利園山道 > 樂陶苑 樂陶苑特別班次'],
       ['2000973,1', '利園山道 > 樂翠台 樂翠台特別班次'],
     ]);
+  });
+});
+
+describe('test can getETAMessage', () => {
+  test('Can get eta message', () => {
+    const etas = [
+      {
+        eta_seq: 1,
+        diff: 5,
+        timestamp: '2021-06-03T21:11:28.332+08:00',
+        remarks_tc: null,
+        remarks_sc: null,
+        remarks_en: null,
+      },
+      {
+        eta_seq: 2,
+        diff: 20,
+        timestamp: '2021-06-03T21:26:42.250+08:00',
+        remarks_tc: null,
+        remarks_sc: null,
+        remarks_en: null,
+      },
+    ];
+
+    expect(getGMBETAMessage(etas)).toEqual(`預計到站時間如下⌚
+————————————————————
+1. 5 分鐘  (21:11)
+2. 20 分鐘  (21:26)`);
+  });
+
+  test('Can get empty eta message', () => {
+    const etas = [];
+    expect(getGMBETAMessage(etas)).toEqual('尾班車已過或未有到站時間提供');
   });
 });
