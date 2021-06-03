@@ -16,7 +16,8 @@ Telegram Bot to Check Hong Kong Public Transport ETA<br>
 
 ## Introduction
 
-A [**Telegram**](https://telegram.org) bot to check the Hong Kong public transport's estimated time of arrival. Currently support metro, LRT and all franchised buses, including 
+A [**Telegram**](https://telegram.org) bot to check the Hong Kong public transport's estimated time of arrival. Currently support metro, LRT and all franchised buses, including
+
 - MTR(港鐵)
   - Train
   - Bus
@@ -40,7 +41,6 @@ Use this bot [@HK_ETA_BOT](https://t.me/HK_ETA_BOT)
 
 - Please let me know
 
-
 ## Setup
 
 ### Environment variables
@@ -56,13 +56,13 @@ now secrets add api_key <secret-value>
 Run locally
 
 ```
-npm run local
+npm run dev:app
 ```
 
-Deploy to zeit.co
+Run production
 
 ```
-npm run prod
+npm run build && npm run start
 ```
 
 ## License
@@ -72,8 +72,8 @@ npm run prod
 ## Acknowledgement
 
 - [telegraf](https://github.com/telegraf/telegraf) - Modern Telegram Bot Framework for Node.js
+- [telegraf-inline-menu](https://github.com/EdJoPaTo/telegraf-inline-menu) - Easily create an inline menu for Telegram bot
+- [telegraf-stateless-question](https://github.com/EdJoPaTo/telegraf-stateless-question) - Create stateless questions to Telegram users working in privacy mode
 - [axios](https://github.com/axios/axios) - Promise based HTTP client for the browser and node.js
 - [express](https://github.com/expressjs/express) - Fast, unopinionated, minimalist web framework for node.
-- [express-graphql](https://github.com/graphql/express-graphql) - Create a GraphQL HTTP server with Express.
-- [now](https://github.com/zeit/now) - The easiest way to deploy websites.
 - [DATA.GOV.HK](https://data.gov.hk) - Public sector information.
