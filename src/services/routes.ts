@@ -40,8 +40,7 @@ export async function getBusRoutes() {
   const nwfbRoutes = new Set(nwfb.data.data.map((d) => d.route));
   const kmbRoutes = new Set(kmb.data.data.map((d) => d.route));
   const nlbRoutes = new Set(nlb.data.routes.map((d) => d.routeNo));
-
-  const { MTR } = readJSON('routes-mtr');
+  const mtrRoutes = readJSON('routes-mtr');
 
   const routes = {
     CTB: [...ctbRoutes],
@@ -51,7 +50,7 @@ export async function getBusRoutes() {
     GMB_HKI: gmbRoutes['HKI'],
     GMB_KLN: gmbRoutes['KLN'],
     GMB_NT: gmbRoutes['NT'],
-    MTR,
+    MTR: mtrRoutes.map((r) => r.route_number),
   };
 
   fs.writeFileSync(

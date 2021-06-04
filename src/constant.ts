@@ -7,6 +7,8 @@ export const ETAGMB_GOV_ENDPOINT = 'https://data.etagmb.gov.hk';
 
 // MTR
 export const MTR_ENDPOINT = `${DATA_GOV_ENDPOINT}/mtr`;
+export const MTR_BUS_ENDPOINT =
+  'https://mavmwfs1004.azurewebsites.net/MTRBus/BusService.svc';
 
 // LRT
 export const LRT_ENDPOINT = `${MTR_ENDPOINT}/lrt`;
