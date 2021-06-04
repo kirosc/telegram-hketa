@@ -21,6 +21,7 @@ import { NLBRoute, NLBStop } from '@services/bus/nlb';
 import { BusStop } from '@interfaces/bus';
 import analytics from '@services/analytics';
 import { GMBRoute, GMBRouteStop } from '@services/bus/gmb';
+import { getTramETA } from '@services/tram';
 
 interface SessionData extends SceneSession {
   bus: {
@@ -100,6 +101,8 @@ bot.command('help', (ctx) =>
 /contribute - 一同開發此bot`
   )
 );
+
+getTramETA('04W');
 
 bot.telegram.setMyCommands([
   {

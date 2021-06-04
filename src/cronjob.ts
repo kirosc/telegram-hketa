@@ -3,21 +3,19 @@ import { DateTime } from 'luxon';
 import { getBusRoutes } from '@services/routes';
 import env from '@root/constant';
 
+const isProduction = env.ENV === 'production';
+
 const every12Hours = '0 0 */12 * * *';
 
 const updateJob = new cronjob.CronJob(
   every12Hours,
   updateBusRoutes,
   null,
-  false,
+  isProduction,
   'Asia/Hong_Kong',
   null,
-  true
+  isProduction
 );
-
-if (env.ENV === 'production') {
-  updateJob.start();
-}
 
 async function updateBusRoutes() {
   console.info(

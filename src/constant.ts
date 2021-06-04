@@ -23,6 +23,9 @@ export const NLB_ENDPOINT = `${DATA_GOV_ENDPOINT}/nlb`;
 // Green Minibus
 export const GMB_ENDPOINT = `${ETAGMB_GOV_ENDPOINT}`;
 
+// Tram
+export const TRAM_ENDPOINT = 'https://www.hktramways.com/nextTram';
+
 export enum BusCompany {
   KMB = 'KMB',
   CTB = 'CTB',
