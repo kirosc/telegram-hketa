@@ -103,6 +103,8 @@ bot.command('help', (ctx) =>
   )
 );
 
+bot.command(['lrt', 'mtr', 'bus'], (ctx) => ctx.reply('請使用 /start'));
+
 bot.telegram.setMyCommands([
   {
     command: 'start',
