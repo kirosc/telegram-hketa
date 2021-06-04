@@ -1,6 +1,5 @@
 import { SEPARATOR, TRAM_ENDPOINT } from '@root/constant';
 import axios from 'axios';
-import { DateTime } from 'luxon';
 import xml from 'xml2js';
 
 interface TramETA {
@@ -27,7 +26,8 @@ export async function getTramETA(stop_code: string) {
     explicitArray: false,
     tagNameProcessors: [() => 'etas'],
   });
-  console.log(json.etas);
+
+  return json.etas;
 }
 
 export function getTramETAMessage(etas: TramETA[]) {
@@ -45,8 +45,7 @@ export function getTramETAMessage(etas: TramETA[]) {
       eat,
       tram_dest_tc,
     }) => {
-      const etaDt = DateTime.fromFormat(eat, 'MMM d yyyy h:mma');
-      const formattedTime = etaDt.toLocaleString(DateTime.TIME_24_SIMPLE);
+      const formattedTime = eat.split(' ').pop();
       const arrived = is_arrived === '1' ? '已到達' : '';
       const lastTram = is_last_tram === '1' ? '尾班車' : '';
       return `${seq}. ${arrive_in_minute} 分鐘  (${formattedTime}) 往${tram_dest_tc} ${arrived} ${lastTram}`.trim();

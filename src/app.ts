@@ -21,7 +21,7 @@ import { NLBRoute, NLBStop } from '@services/bus/nlb';
 import { BusStop } from '@interfaces/bus';
 import analytics from '@services/analytics';
 import { GMBRoute, GMBRouteStop } from '@services/bus/gmb';
-import { getTramETA } from '@services/tram';
+import { tramMenu } from '@scenes/tram';
 
 interface SessionData extends SceneSession {
   bus: {
@@ -66,6 +66,7 @@ const mainMenu = new MenuTemplate<BotContext>((ctx) => '選擇查詢的交通工
 
 mainMenu.submenu('輕鐵', 'lrt', lrtMenu);
 mainMenu.submenu('地鐵', 'mtr', mtrMenu);
+mainMenu.submenu('電車', 'tram', tramMenu);
 mainMenu.interact('巴士 & 小巴', 'bus-route', {
   do: async (ctx) => {
     routeQuestion.replyWithMarkdown(ctx, '輸入巴士路線🚆');
@@ -101,8 +102,6 @@ bot.command('help', (ctx) =>
 /contribute - 一同開發此bot`
   )
 );
-
-getTramETA('04W');
 
 bot.telegram.setMyCommands([
   {
