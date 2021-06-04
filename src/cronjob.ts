@@ -1,6 +1,7 @@
 import cronjob from 'cron';
 import { DateTime } from 'luxon';
 import { getBusRoutes } from '@services/routes';
+import env from '@root/constant';
 
 const every12Hours = '0 0 */12 * * *';
 
@@ -14,7 +15,9 @@ const updateJob = new cronjob.CronJob(
   true
 );
 
-updateJob.start();
+if (env.ENV === 'production') {
+  updateJob.start();
+}
 
 async function updateBusRoutes() {
   console.info(
