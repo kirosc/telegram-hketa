@@ -38,6 +38,7 @@
     "crypto-js": "^4.0.0",
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
+    "knex": "^0.95.6",
     "lodash": "^4.17.21",
     "luxon": "^1.27.0",
     "module-alias": "^2.2.2",
@@ -59,6 +60,7 @@
     "jest": "^27.0.4",
     "lint-staged": "^11.0.0",
     "prettier": "^2.3.0",
+    "sqlite3": "^5.0.2",
     "ts-jest": "^27.0.2",
     "ts-node": "^10.0.0",
     "ts-node-dev": "^1.1.6"

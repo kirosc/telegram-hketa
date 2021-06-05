@@ -3,11 +3,15 @@ import { MD5 } from 'crypto-js';
 import { DateTime } from 'luxon';
 import { MTR_BUS_ENDPOINT, SEPARATOR } from '@root/constant';
 import { readJSON } from '@services/io';
+import Knex from 'knex';
+import _ from 'lodash';
+import fs from 'fs';
+import path from 'path';
 
 interface MTRBusRoute {
   route_number: string;
   route_ID: number;
-  shape: 'I' | 'U';
+  shape: 'I' | 'U' | 'H';
   lines: MTRBusSubRoute[];
 }
 
@@ -119,4 +123,89 @@ export function getMTRBusETAMessage(stopId: string, res: MTRBusETAResponse) {
 function getMTRBusKey() {
   const str = 'mtrMobile_' + DateTime.now().toFormat('yyyyLLddHHmm');
   return MD5(str).toString();
+}
+
+export async function getRouteFromDB() {
+  const knex = Knex({
+    client: 'sqlite3',
+    connection: {
+      filename: path.resolve(__dirname, '../../../E_Bus.db'),
+    },
+  });
+  const routes: any = [];
+
+  const busRoute = await knex
+    .select('route_ID', 'route_number', 'description_en', 'description_zh')
+    .table('busRoute');
+  const busRouteLine = await knex
+    .select('routeLine_ID', 'route_ID', 'from_stop', 'shape')
+    .table('busRouteLine');
+  const busStop = await knex
+    .select(
+      'routeLine_ID',
+      'name_en',
+      'name_ch',
+      'remark_en',
+      'remark_ch',
+      'ref_ID'
+    )
+    .orderBy('sort_order', 'asc')
+    .table('busStop');
+
+  for (const route of busRoute) {
+    // Covert to route based index object
+    let { route_number, route_ID } = route;
+    let newRoute: any = { route_number, route_ID, shape: '', lines: [] };
+
+    const lines = _.filter(busRouteLine, (line) => line.route_ID === route_ID);
+    newRoute.shape = lines[0].shape;
+
+    // Parsing directions of routes
+    for (const { shape, routeLine_ID, from_stop } of lines) {
+      let { description_en, description_zh } = route;
+      // Prettify bidirectional route
+      if (shape === 'H') {
+        let description_en_list = description_en.split(' ←→ ');
+        let description_zh_list = description_zh.split(' ←→ ');
+
+        if (!_.startsWith(description_zh_list, from_stop)) {
+          description_zh_list = _.reverse(description_zh_list);
+          description_en_list = _.reverse(description_en_list);
+        }
+        description_en =
+          description_en_list[0] + ' to ' + description_en_list[1];
+        description_zh =
+          description_zh_list[0] + ' 往 ' + description_zh_list[1];
+      }
+
+      // Appending stop to line
+      const stops = _.filter(
+        busStop,
+        (stop) => stop.routeLine_ID === routeLine_ID
+      );
+      for (let stop of stops) {
+        const { remark_en, remark_ch } = stop;
+        if (remark_en !== '') {
+          stop.name_en += remark_en;
+          stop.name_ch += remark_ch;
+        }
+        delete stop.routeLine_ID;
+        delete stop.remark_en;
+        delete stop.remark_ch;
+      }
+      newRoute.lines.push({
+        id: routeLine_ID,
+        description_en,
+        description_zh,
+        stops,
+      });
+    }
+    routes.push(newRoute);
+  }
+
+  fs.writeFileSync(
+    path.resolve(__dirname, '../../../data/routes-mtr.json'),
+    JSON.stringify(routes),
+    'utf-8'
+  );
 }
