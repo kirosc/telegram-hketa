@@ -34,6 +34,12 @@ import {
   getGMBETAMessage,
   retrieveGMBRouteStopETAs,
 } from '@services/bus/gmb';
+import {
+  getMTRBusETA,
+  getMTRBusETAMessage,
+  listMTRBusStops,
+  listMTRBusSubRoutes,
+} from '@services/bus/mtr';
 
 enum Prefix {
   ENTRY_COMPANY = 'bus-company',
@@ -100,6 +106,13 @@ const etaMenu = new MenuTemplate<BotContext>(async (ctx) => {
       }
 
       message = getGMBETAMessage(gmbEtas!);
+
+      break;
+
+    case BusCompany.MTR:
+      const [, , , mtrStopId] = ctx.match!;
+      const etaRes = await getMTRBusETA(route);
+      message = getMTRBusETAMessage(mtrStopId, etaRes);
 
       break;
     default:
@@ -200,6 +213,11 @@ async function buildSubRouteKeyboard(ctx: BotContext) {
       keyboard = buildGMBSubRouteKeyboard(gmbRoutes);
 
       break;
+    case BusCompany.MTR:
+      const mtrRoutes = ctx.session.bus.mtr.routes!;
+      keyboard = mtrRoutes.map((r) => [r.id.toString(), r.description_zh]);
+
+      break;
     default:
       ctx.reply('Not implemented');
   }
@@ -240,9 +258,9 @@ async function buildStopKeyboard(ctx: BotContext) {
 
       break;
     case BusCompany.NLB:
-      const [, , nlbRouteId] = ctx.match!;
+      const [, , nlbSubRouteId] = ctx.match!;
       const nlbStops =
-        ctx.session.bus.nlb.stops ?? (await listNLBRouteStop(nlbRouteId));
+        ctx.session.bus.nlb.stops ?? (await listNLBRouteStop(nlbSubRouteId));
       ctx.session.bus.nlb.stops = nlbStops;
       keyboard = nlbStops.map((s) => [s.stopId, s.stopName_c]);
 
@@ -257,6 +275,13 @@ async function buildStopKeyboard(ctx: BotContext) {
         (await listGMBRouteStops(gmbRouteId, routeSeq));
       ctx.session.bus.gmb.stops = gmbStops;
       keyboard = gmbStops.map((s) => [s.stop_seq.toString(), s.name_tc]);
+
+      break;
+    case BusCompany.MTR:
+      const [, , mtrSubRouteId] = ctx.match!;
+      const mtrStops = listMTRBusStops(route, mtrSubRouteId);
+      ctx.session.bus.mtr.stops = mtrStops;
+      keyboard = mtrStops.map((s) => [s.ref_ID, s.name_ch]);
 
       break;
     default:
@@ -276,7 +301,7 @@ async function handleRouteNumber(ctx: BotContext) {
   const companies = getRouteCompany(route);
   ctx.session = {
     __scenes: {},
-    bus: { route, companies, kmb: {}, bravo: {}, nlb: {}, gmb: {} },
+    bus: { route, companies, kmb: {}, bravo: {}, nlb: {}, gmb: {}, mtr: {} },
   };
 
   switch (companies.length) {
@@ -329,6 +354,12 @@ async function fetchRouteList(
       if (!ctx.session.bus.gmb.routes) {
         const region = getRegion(company);
         ctx.session.bus.gmb.routes = await retrieveGMBRoute(region, route);
+      }
+
+      break;
+    case BusCompany.MTR:
+      if (!ctx.session.bus.mtr.routes) {
+        ctx.session.bus.mtr.routes = listMTRBusSubRoutes(route);
       }
 
       break;

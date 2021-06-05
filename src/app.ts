@@ -22,6 +22,7 @@ import { BusStop } from '@interfaces/bus';
 import analytics from '@services/analytics';
 import { GMBRoute, GMBRouteStop } from '@services/bus/gmb';
 import { tramMenu } from '@scenes/tram';
+import { MTRBusStop, MTRBusSubRoute } from '@services/bus/mtr';
 
 interface SessionData extends SceneSession {
   bus: {
@@ -44,6 +45,10 @@ interface SessionData extends SceneSession {
     gmb: {
       routes?: GMBRoute[];
       stops?: GMBRouteStop[];
+    };
+    mtr: {
+      routes?: MTRBusSubRoute[];
+      stops?: MTRBusStop[];
     };
   };
 }
@@ -69,6 +74,7 @@ mainMenu.submenu('地鐵', 'mtr', mtrMenu);
 mainMenu.submenu('電車', 'tram', tramMenu);
 mainMenu.interact('巴士 & 小巴', 'bus-route', {
   do: async (ctx) => {
+    ctx.answerCbQuery();
     routeQuestion.replyWithMarkdown(ctx, '輸入巴士路線🚆');
     return false;
   },
