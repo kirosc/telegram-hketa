@@ -33,6 +33,7 @@ zoneMenu.chooseIntoSubmenu('zone', buildZoneKeyboard, stationMenu, {
 
 stationMenu.chooseIntoSubmenu('station', buildStationKeyboard, etaMenu, {
   columns: 2,
+  maxRows: 20,
 });
 
 etaMenu.manualRow(createNavButtons());
