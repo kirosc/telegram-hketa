@@ -1,6 +1,6 @@
 {
   "name": "tg-hketa",
-  "version": "2.3.1",
+  "version": "2.4.0",
   "engines": {
     "node": "16.x"
   },
@@ -25,7 +25,7 @@
   "author": "Kiros Choi",
   "license": "GPL-3.0-or-later",
   "dependencies": {
-    "@sentry/node": "^6.6.0",
+    "@sentry/node": "^6.8.0",
     "@types/axios": "^0.14.0",
     "@types/body-parser": "^1.19.0",
     "@types/dotenv": "^8.2.0",
@@ -47,7 +47,7 @@
     "telegraf": "^4.3.0",
     "telegraf-inline-menu": "^6.2.1",
     "telegraf-stateless-question": "^2.0.1",
-    "typescript": "^4.3.2",
+    "typescript": "^4.3.4",
     "universal-analytics": "^0.4.23",
     "xml2js": "^0.4.23"
   },
@@ -57,9 +57,9 @@
     "@types/universal-analytics": "^0.4.4",
     "@types/xml2js": "^0.4.8",
     "husky": "^6.0.0",
-    "jest": "^27.0.4",
+    "jest": "^27.0.5",
     "lint-staged": "^11.0.0",
-    "prettier": "^2.3.1",
+    "prettier": "^2.3.2",
     "sqlite3": "^5.0.2",
     "ts-jest": "^27.0.3",
     "ts-node": "^10.0.0",
