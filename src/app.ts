@@ -7,7 +7,11 @@ import { SceneSession } from 'telegraf/typings/scenes';
 import env from '@root/constant';
 import { lrtMenu, mtrMenu } from '@scenes/index';
 import { errorHandler } from '@services/telegram';
-import { MenuMiddleware, MenuTemplate } from 'telegraf-inline-menu';
+import {
+  deleteMenuFromContext,
+  MenuMiddleware,
+  MenuTemplate,
+} from 'telegraf-inline-menu';
 import { companyMenu, routeQuestion } from '@scenes/bus';
 import { BusCompanyCode } from '@services/bus/common';
 import { KMBRoute, KMBRouteStop } from '@services/bus/kmb';
@@ -75,6 +79,7 @@ mainMenu.submenu('電車', 'tram', tramMenu);
 mainMenu.interact('巴士 & 小巴', 'bus-route', {
   do: async (ctx) => {
     ctx.answerCbQuery();
+    deleteMenuFromContext(ctx);
     routeQuestion.replyWithMarkdown(ctx, '輸入巴士路線🚆');
     return false;
   },

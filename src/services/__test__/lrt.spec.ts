@@ -170,4 +170,12 @@ describe('test can getRouteMessage', () => {
     };
     expect(getRouteMessage(route)).toEqual('615 - 屯門碼頭 - 1卡 - 13 分鐘');
   });
+
+  test('Can get stopped route message', () => {
+    const route: LRTRoute = {
+      route_no: '751P',
+      stop: 1,
+    };
+    expect(getRouteMessage(route)).toEqual('751P - 已停止服務');
+  });
 });

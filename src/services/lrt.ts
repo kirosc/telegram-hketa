@@ -29,7 +29,12 @@ export function getPlatformMessage(platform: LRTPlatform) {
 }
 
 export function getRouteMessage(route: LRTRoute) {
-  const { route_no, dest_ch, train_length, time_ch } = route;
+  const { route_no, dest_ch, train_length, time_ch, stop } = route;
+
+  if (!!stop) {
+    return `${route_no} - 已停止服務`;
+  }
+
   return `${route_no} - ${dest_ch} - ${train_length}卡 - ${
     time_ch === '-' ? '即將離開' : time_ch
   }`;
