@@ -72,16 +72,17 @@ const etaMenu = new MenuTemplate<BotContext>(async (ctx) => {
       // FIXME: This function will be run multiple time at every stage,
       // so this has to be idempotent
       const [, , routeList, kmbStopId] = ctx.match!;
-      const [, serviceType] = routeList.split(',');
+      const [kmbBound, serviceType] = routeList.split(',');
+
       const kmbEtas = await getKMBETA(route, serviceType, kmbStopId);
-      message = getETAMessage(kmbEtas);
+      message = getETAMessage(kmbBound, kmbEtas);
 
       break;
     case BusCompany.CTB:
     case BusCompany.NWFB:
-      const [, , , bravoStopId] = ctx.match!;
+      const [, , bravoBound, bravoStopId] = ctx.match!;
       const bravoEtas = await getBravoBusETA(company, bravoStopId, route);
-      message = getETAMessage(bravoEtas);
+      message = getETAMessage(bravoBound, bravoEtas);
 
       break;
     case BusCompany.NLB:

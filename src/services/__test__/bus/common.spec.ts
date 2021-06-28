@@ -92,7 +92,7 @@ describe('test can getETAMessage', () => {
       .mockReturnValueOnce(12)
       .mockReturnValueOnce(14)
       .mockReturnValueOnce(27);
-    expect(getETAMessage(etas)).toEqual(`預計到站時間如下⌚
+    expect(getETAMessage('O', etas)).toEqual(`預計到站時間如下⌚
 ————————————————————
 1. 12 分鐘  (14:44) - 往 九龍站 
 2. 14 分鐘  (14:46) - 往 九龍站 - 受阻於黃大仙總站
@@ -101,6 +101,6 @@ describe('test can getETAMessage', () => {
 
   test('Can get empty eta message', () => {
     const etas = [];
-    expect(getETAMessage(etas)).toEqual('尾班車已過或未有到站時間提供');
+    expect(getETAMessage('O', etas)).toEqual('尾班車已過或未有到站時間提供');
   });
 });

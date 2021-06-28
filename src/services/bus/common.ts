@@ -32,24 +32,26 @@ export function getRouteCompany(route: string): BusCompanyCode[] {
   return _.keys(matched) as BusCompanyCode[];
 }
 
-export function getETAMessage(etas: BusETA[]) {
+export function getETAMessage(bound: string, etas: BusETA[]) {
   if (etas.length === 0) {
     return '尾班車已過或未有到站時間提供';
   }
 
   const message = `預計到站時間如下⌚\n${SEPARATOR}\n`;
 
-  const etasMessage = etas.map(({ eta, eta_seq, dest_tc, rmk_tc }) => {
-    if (!eta) {
-      return rmk_tc;
-    }
+  const etasMessage = etas
+    .filter((eta) => eta.dir === bound)
+    .map(({ eta, eta_seq, dest_tc, rmk_tc }) => {
+      if (!eta) {
+        return rmk_tc;
+      }
 
-    const etaDt = DateTime.fromISO(eta);
-    const etaMins = getTimeDiffinMins(etaDt);
-    const formattedTime = etaDt.toLocaleString(DateTime.TIME_24_SIMPLE);
-    const remark = rmk_tc ? `- ${rmk_tc}` : '';
-    return `${eta_seq}. ${etaMins} 分鐘  (${formattedTime}) - 往 ${dest_tc} ${remark}`;
-  });
+      const etaDt = DateTime.fromISO(eta);
+      const etaMins = getTimeDiffinMins(etaDt);
+      const formattedTime = etaDt.toLocaleString(DateTime.TIME_24_SIMPLE);
+      const remark = rmk_tc ? `- ${rmk_tc}` : '';
+      return `${eta_seq}. ${etaMins} 分鐘  (${formattedTime}) - 往 ${dest_tc} ${remark}`;
+    });
 
   return `${message}${etasMessage.join('\n')}`;
 }
