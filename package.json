@@ -14,7 +14,7 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "update:route": "ts-node src/services/routes.ts",
-    "setWebhook": "curl -F \"url=https://$URL/message\" https://api.telegram.org/bot$TOKEN/setWebhook",
+    "set:webhook": "curl -F \"url=https://$URL/message\" https://api.telegram.org/bot$TOKEN/setWebhook",
     "prepare": "husky install"
   },
   "keywords": [

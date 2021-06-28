@@ -22,6 +22,7 @@ lineMenu.chooseIntoSubmenu('mtr-line', buildLineKeyboard, stationMenu, {
 
 stationMenu.chooseIntoSubmenu('mtr-station', buildStationKeyboard, etaMenu, {
   columns: 2,
+  maxRows: 15,
 });
 
 async function displayETA(ctx: BotContext) {

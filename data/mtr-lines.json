@@ -77,9 +77,84 @@
     ]
   },
   "WRL": {
-    "tc": "西鐵綫",
-    "en": "West Rail line",
+    "tc": "屯馬綫",
+    "en": "Tuen Ma Line",
     "stations": [
+      {
+        "code": "WKS",
+        "tc": "烏溪沙",
+        "en": "Wu Kai Sha"
+      },
+      {
+        "code": "MOS",
+        "tc": "馬鞍山",
+        "en": "Ma On Shan"
+      },
+      {
+        "code": "HEO",
+        "tc": "恆安",
+        "en": "Heng On"
+      },
+      {
+        "code": "TSH",
+        "tc": "大水坑",
+        "en": "Tai Shui Hang"
+      },
+      {
+        "code": "SHM",
+        "tc": "石門",
+        "en": "Shek Mun"
+      },
+      {
+        "code": "CIO",
+        "tc": "第一城",
+        "en": "City One"
+      },
+      {
+        "code": "STW",
+        "tc": "沙田圍",
+        "en": "Sha Tin Wai"
+      },
+      {
+        "code": "CKT",
+        "tc": "車公廟",
+        "en": "Che Kung Temple"
+      },
+      {
+        "code": "TAW",
+        "tc": "大圍",
+        "en": "Tai Wai"
+      },
+      {
+        "code": "HIK",
+        "tc": "顯徑",
+        "en": "Hin Keng"
+      },
+      {
+        "code": "DIH",
+        "tc": "鑽石山",
+        "en": "Diamond Hill"
+      },
+      {
+        "code": "KAT",
+        "tc": "啟德",
+        "en": "Kai Tak"
+      },
+      {
+        "code": "SUW",
+        "tc": "宋皇臺",
+        "en": "Sung Wong Toi"
+      },
+      {
+        "code": "TKW",
+        "tc": "土瓜灣",
+        "en": "To Kwa Wan"
+      },
+      {
+        "code": "HOM",
+        "tc": "何文田",
+        "en": "Ho Man Tin"
+      },
       {
         "code": "HUH",
         "tc": "紅磡",
