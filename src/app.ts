@@ -62,8 +62,9 @@ export interface BotContext extends Context, Scenes.SceneContext {
   session: SessionData;
 }
 
-Settings.defaultZoneName = 'Asia/Hong_Kong';
-Settings.defaultLocale = 'en-UK';
+// FIXME: upgrade @types/luxon to 2.0
+(Settings.defaultZone as any) = 'Asia/Hong_Kong';
+Settings.defaultLocale = 'en-GB';
 
 const { PORT, ENV, TG_TOKEN, TG_DEV_TOKEN } = env;
 

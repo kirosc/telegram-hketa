@@ -1,4 +1,5 @@
 import { Settings } from 'luxon';
 
-Settings.defaultZoneName = 'Asia/Hong_Kong';
+// FIXME: upgrade @types/luxon to 2.0
+(Settings.defaultZone as any) = 'Asia/Hong_Kong';
 Settings.defaultLocale = 'en-GB';
