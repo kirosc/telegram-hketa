@@ -237,13 +237,16 @@ async function buildStopKeyboard(ctx: BotContext) {
     throw new Error('route is empty');
   }
 
+  // FIXME: validate session cache with route direction
   switch (company) {
     case BusCompany.KMB:
       const [, , routeList] = ctx.match!;
       const [bound, serviceType] = routeList!.split(',');
-      const kmbStops =
-        ctx.session.bus.kmb.stops ??
-        (await getKMBRouteStopDetail(route, bound as any, serviceType));
+      const kmbStops = await getKMBRouteStopDetail(
+        route,
+        bound as any,
+        serviceType
+      );
       ctx.session.bus.kmb.stops = kmbStops;
       keyboard = kmbStops.map((s) => [s.stop, s.name_tc]);
 
@@ -251,17 +254,18 @@ async function buildStopKeyboard(ctx: BotContext) {
     case BusCompany.CTB:
     case BusCompany.NWFB:
       const [, , direction] = ctx.match!;
-      const bravoStops =
-        ctx.session.bus.bravo.stops ??
-        (await getBravoBusRouteStopDetail(company, route, direction as any));
+      const bravoStops = await getBravoBusRouteStopDetail(
+        company,
+        route,
+        direction as any
+      );
       ctx.session.bus.bravo.stops = bravoStops;
       keyboard = bravoStops.map((s) => [s.stop, s.name_tc]);
 
       break;
     case BusCompany.NLB:
       const [, , nlbSubRouteId] = ctx.match!;
-      const nlbStops =
-        ctx.session.bus.nlb.stops ?? (await listNLBRouteStop(nlbSubRouteId));
+      const nlbStops = await listNLBRouteStop(nlbSubRouteId);
       ctx.session.bus.nlb.stops = nlbStops;
       keyboard = nlbStops.map((s) => [s.stopId, s.stopName_c]);
 
@@ -271,9 +275,7 @@ async function buildStopKeyboard(ctx: BotContext) {
     case BusCompany.GMB_NT:
       const [, , routeIdAndRouteSeq] = ctx.match!;
       const [gmbRouteId, routeSeq] = routeIdAndRouteSeq.split(',');
-      const gmbStops =
-        ctx.session.bus.gmb.stops ??
-        (await listGMBRouteStops(gmbRouteId, routeSeq));
+      const gmbStops = await listGMBRouteStops(gmbRouteId, routeSeq);
       ctx.session.bus.gmb.stops = gmbStops;
       keyboard = gmbStops.map((s) => [s.stop_seq.toString(), s.name_tc]);
 
