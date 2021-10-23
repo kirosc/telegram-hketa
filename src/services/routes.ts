@@ -9,7 +9,7 @@ import { listGMBRoutes } from '@services/bus/gmb';
 
 // Collect and index NLB routeId by route number
 async function getNLBRotues() {
-  const res = await axios.get(`${NLB_ENDPOINT}/route.php?action=list`);
+  const res = await axios.get<any>(`${NLB_ENDPOINT}/route.php?action=list`);
 
   const sortedRoutes = _.sortBy(res.data.routes, (r) => parseInt(r.routeId));
   const routes = _.groupBy(sortedRoutes, 'routeNo');
@@ -22,10 +22,10 @@ async function getNLBRotues() {
 }
 
 export async function getBusRoutes() {
-  const ctbJob = axios.get(`${BRAVO_BUS_ENDPOINT}/route/CTB`);
-  const nwfbJob = axios.get(`${BRAVO_BUS_ENDPOINT}/route/NWFB`);
-  const kmbJob = axios.get(`${KMB_ENDPOINT}/route`);
-  const nlbJob = axios.get(`${NLB_ENDPOINT}/route.php?action=list`);
+  const ctbJob = axios.get<any>(`${BRAVO_BUS_ENDPOINT}/route/CTB`);
+  const nwfbJob = axios.get<any>(`${BRAVO_BUS_ENDPOINT}/route/NWFB`);
+  const kmbJob = axios.get<any>(`${KMB_ENDPOINT}/route`);
+  const nlbJob = axios.get<any>(`${NLB_ENDPOINT}/route.php?action=list`);
   const gmbJob = listGMBRoutes();
 
   const [ctb, nwfb, kmb, nlb, gmbRoutes] = await Promise.all([

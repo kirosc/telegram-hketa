@@ -17,7 +17,7 @@ interface TramETA {
 }
 
 export async function getTramETA(stop_code: string) {
-  const res = await axios.get(`${TRAM_ENDPOINT}/geteat.php`, {
+  const res = await axios.get<any>(`${TRAM_ENDPOINT}/geteat.php`, {
     params: { stop_code },
   });
   const json: { etas: TramETA[] } = await xml.parseStringPromise(res.data, {
