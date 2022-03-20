@@ -8,7 +8,7 @@
   "main": "dist/src/app.js",
   "scripts": {
     "start": "NODE_ENV=production node -r source-map-support/register --trace-warnings dist/src/app.js",
-    "dev": "NODE_ENV=development ts-node-dev --respawn --watch *.ts",
+    "dev": "NODE_ENV=development ts-node-dev --respawn -r tsconfig-paths/register",
     "dev:app": "npm run dev src/app.ts",
     "build": "npm run update:route && rm -rf dist && tsc && cp -r data dist/",
     "test": "jest",
@@ -63,7 +63,8 @@
     "sqlite3": "^5.0.2",
     "ts-jest": "^27.0.7",
     "ts-node": "^10.4.0",
-    "ts-node-dev": "^1.1.8"
+    "ts-node-dev": "^1.1.8",
+    "tsconfig-paths": "^3.14.0"
   },
   "lint-staged": {
     "*.{ts,md}": "prettier --write"
