@@ -16,7 +16,7 @@ interface MTRBusRoute {
 }
 
 export interface MTRBusSubRoute {
-  id: number;
+  id: string;
   description_en: string;
   description_zh: string;
   stops: MTRBusStop[];
@@ -73,14 +73,17 @@ export interface MTRBusETAResponse {
 
 const routes: MTRBusRoute[] = readJSON('routes-mtr');
 
-export function listMTRBusSubRoutes(route: string) {
-  return routes.find((r) => r.route_number === route)!.lines;
+export function listMTRBusSubRoutes(route: string): MTRBusSubRoute[] {
+  return routes.filter((r) => r.route_number === route).flatMap((r) => r.lines);
 }
 
-export function listMTRBusStops(route: string, lineId: string) {
-  return routes
-    .find((r) => r.route_number === route)!
-    .lines.find((l) => l.id.toString() === lineId)!.stops;
+export function listMTRBusStops(route: string, lineId: string): MTRBusStop[] {
+  // TODO: refactor lines to a single object
+  const line = routes.find(
+    ({ route_number, lines }) =>
+      route_number === route && lines[0].id === lineId
+  )!.lines[0];
+  return line.stops;
 }
 
 export async function getMTRBusETA(route: string) {
@@ -227,7 +230,7 @@ export async function getRoutes() {
       shape: data.Direction,
       lines: [
         {
-          id: data.RouteId, // TODO: deprecate
+          id: `${data.RouteId}-${data.Direction}`,
           description_en,
           description_zh,
           stops: data.Stops.map((stop) => ({
