@@ -215,6 +215,8 @@ async function getRouteFromDB() {
 }
 
 export async function getRoutes() {
+  console.log('Fetching MTR bus routes...');
+
   const mtrData = await axios.get<any>(
     `${MTR_DATA_ENDPOINT}/MTRMasterData.json`
   );
@@ -249,4 +251,6 @@ export async function getRoutes() {
     JSON.stringify(routes),
     'utf-8'
   );
+
+  console.log('Saved MTR bus routes!');
 }

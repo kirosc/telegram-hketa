@@ -6,6 +6,7 @@ import _ from 'lodash';
 import { readJSON } from './io';
 import { BRAVO_BUS_ENDPOINT, KMB_ENDPOINT, NLB_ENDPOINT } from '@root/constant';
 import { listGMBRoutes } from '@services/bus/gmb';
+import { getRoutes as getMTRBusRoutes } from './bus/mtr';
 
 // Collect and index NLB routeId by route number
 async function getNLBRotues() {
@@ -22,6 +23,8 @@ async function getNLBRotues() {
 }
 
 export async function getBusRoutes() {
+  console.log('Fetching CTB, NWFB, KMB, NLB and GMB routes...');
+
   const ctbJob = axios.get<any>(`${BRAVO_BUS_ENDPOINT}/route/CTB`);
   const nwfbJob = axios.get<any>(`${BRAVO_BUS_ENDPOINT}/route/NWFB`);
   const kmbJob = axios.get<any>(`${KMB_ENDPOINT}/route`);
@@ -58,6 +61,9 @@ export async function getBusRoutes() {
     JSON.stringify(routes, null, 2),
     'utf-8'
   );
+
+  console.log('Saved CTB, NWFB, KMB, NLB and GMB routes!');
 }
 
 getBusRoutes();
+getMTRBusRoutes();
