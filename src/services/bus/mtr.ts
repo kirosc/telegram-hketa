@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { MD5 } from 'crypto-js';
 import { DateTime } from 'luxon';
-import { MTR_BUS_ENDPOINT, SEPARATOR } from '@root/constant';
+import { MTR_BUS_ENDPOINT, MTR_DATA_ENDPOINT, SEPARATOR } from '@root/constant';
 import { readJSON } from '@services/io';
 import Knex from 'knex';
 import _ from 'lodash';
@@ -11,7 +11,7 @@ import path from 'path';
 interface MTRBusRoute {
   route_number: string;
   route_ID: number;
-  shape: 'I' | 'U' | 'H';
+  shape: 'I' | 'U' | 'H' | 'O';
   lines: MTRBusSubRoute[];
 }
 
@@ -125,7 +125,8 @@ function getMTRBusKey() {
   return MD5(str).toString();
 }
 
-export async function getRouteFromDB() {
+// TODO: deprecate
+async function getRouteFromDB() {
   const knex = Knex({
     client: 'sqlite3',
     connection: {
@@ -201,6 +202,43 @@ export async function getRouteFromDB() {
       });
     }
     routes.push(newRoute);
+  }
+
+  fs.writeFileSync(
+    path.resolve(__dirname, '../../../data/routes-mtr.json'),
+    JSON.stringify(routes),
+    'utf-8'
+  );
+}
+
+export async function getRoutes() {
+  const mtrData = await axios.get<any>(
+    `${MTR_DATA_ENDPOINT}/MTRMasterData.json`
+  );
+
+  const routes: any = [];
+
+  for (const data of mtrData.data.Routes) {
+    const description_en = data.OrigEN + ' to ' + data.DestEn;
+    const description_zh = data.OrigTC + ' 往 ' + data.DestTC;
+    const route: MTRBusRoute = {
+      route_number: data.RouteNo,
+      route_ID: data.RouteId, // TODO: deprecate
+      shape: data.Direction,
+      lines: [
+        {
+          id: data.RouteId, // TODO: deprecate
+          description_en,
+          description_zh,
+          stops: data.Stops.map((stop) => ({
+            name_en: stop.NameEN,
+            name_ch: stop.NameTC,
+            ref_ID: stop.StopId,
+          })),
+        },
+      ],
+    };
+    routes.push(route);
   }
 
   fs.writeFileSync(
