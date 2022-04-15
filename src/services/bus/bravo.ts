@@ -102,14 +102,9 @@ export async function getBravoBusETA(
   stopId: string,
   route: string
 ) {
+  // Proxy enforces cache
   const res = await cAxios.get<BravoBusResponse<BravoBusETA[]>>(
-    `${BRAVO_BUS_ENDPOINT}/eta/${company}/${stopId}/${route}`,
-    {
-      cache: {
-        readHeaders: false,
-        maxAge: 5000,
-      },
-    }
+    `${BRAVO_BUS_ENDPOINT}/eta/${company}/${stopId}/${route}`
   );
 
   return res.data.data;
