@@ -1,3 +1,5 @@
+import _ from 'lodash';
+
 import {
   BusETA,
   BusResponse,
@@ -6,8 +8,8 @@ import {
   BusStop,
 } from '@interfaces/bus';
 import { KMB_ENDPOINT } from '@root/constant';
-import axios from 'axios';
-import _ from 'lodash';
+import cAxios from '@services/axios';
+
 import { BOUND_MAPPING } from './common';
 
 interface KMBResponse<T> extends BusResponse {
@@ -35,7 +37,7 @@ export interface KMBETA extends BusETA {
  * @param route Route, e.g. 11
  */
 export async function getKMBRouteList(route: string) {
-  const res = await axios.get<KMBResponse<KMBRoute>>(`${KMB_ENDPOINT}/route`);
+  const res = await cAxios.get<KMBResponse<KMBRoute>>(`${KMB_ENDPOINT}/route`);
 
   return res.data.data.filter((r) => r.route === route);
 }
@@ -52,7 +54,7 @@ export async function getKMBRouteStop(
   bound: 'I' | 'O',
   service_type: string
 ) {
-  const res = await axios.get<KMBResponse<KMBRouteStop>>(
+  const res = await cAxios.get<KMBResponse<KMBRouteStop>>(
     `${KMB_ENDPOINT}/route-stop/${route}/${BOUND_MAPPING[bound]}/${service_type}`
   );
 
@@ -63,7 +65,7 @@ export async function getKMBRouteStop(
  * Get all the stops
  */
 export async function getKMBStopList() {
-  const res = await axios.get<KMBResponse<BusStop>>(`${KMB_ENDPOINT}/stop`);
+  const res = await cAxios.get<KMBResponse<BusStop>>(`${KMB_ENDPOINT}/stop`);
 
   return res.data.data;
 }
@@ -103,8 +105,14 @@ export async function getKMBETA(
   service_type: string,
   stopId: string
 ) {
-  const res = await axios.get<KMBResponse<KMBETA>>(
-    `${KMB_ENDPOINT}/eta/${stopId}/${route}/${service_type}`
+  const res = await cAxios.get<KMBResponse<KMBETA>>(
+    `${KMB_ENDPOINT}/eta/${stopId}/${route}/${service_type}`,
+    {
+      cache: {
+        readHeaders: false,
+        maxAge: 5000,
+      },
+    }
   );
 
   return res.data.data;
