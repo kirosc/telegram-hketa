@@ -2,8 +2,8 @@ import axios from 'axios';
 import { setupCache } from 'axios-cache-adapter';
 
 const cache = setupCache({
-  maxAge: 0,
-  readHeaders: true,
+  maxAge: 300000, // 5mins
+  readHeaders: true, // maxAge will not take effect if no cache headers
   exclude: { query: false },
 });
 
