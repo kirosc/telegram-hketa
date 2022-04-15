@@ -1,3 +1,5 @@
+import _ from 'lodash';
+
 import {
   BusETA,
   BusResponse,
@@ -6,8 +8,8 @@ import {
   BusStop,
 } from '@interfaces/bus';
 import { BRAVO_BUS_ENDPOINT } from '@root/constant';
-import axios from 'axios';
-import _ from 'lodash';
+import cAxios from '@services/axios';
+
 import { BOUND_MAPPING } from './common';
 
 type Company = 'CTB' | 'NWFB';
@@ -41,7 +43,7 @@ export interface BravoBusETA extends BusETA {
  * Get the list of routes of a route
  */
 export async function getBravoBusRoute(company: Company, route: string) {
-  const res = await axios.get<BravoBusResponse<BravoBusRoute>>(
+  const res = await cAxios.get<BravoBusResponse<BravoBusRoute>>(
     `${BRAVO_BUS_ENDPOINT}/route/${company}/${route}`
   );
 
@@ -56,7 +58,7 @@ export async function getBravoBusRouteStop(
   route: string,
   direction: Direction
 ) {
-  const res = await axios.get<BravoBusResponse<BravoBusRouteStop[]>>(
+  const res = await cAxios.get<BravoBusResponse<BravoBusRouteStop[]>>(
     `${BRAVO_BUS_ENDPOINT}/route-stop/${company}/${route}/${direction}`
   );
 
@@ -67,7 +69,7 @@ export async function getBravoBusRouteStop(
  * Get the detail of a stop, e.g. name
  */
 export async function getBravoBusStop(stopId: string) {
-  const res = await axios.get<BravoBusResponse<BravoBusStop>>(
+  const res = await cAxios.get<BravoBusResponse<BravoBusStop>>(
     `${BRAVO_BUS_ENDPOINT}/stop/${stopId}`
   );
 
@@ -100,8 +102,14 @@ export async function getBravoBusETA(
   stopId: string,
   route: string
 ) {
-  const res = await axios.get<BravoBusResponse<BravoBusETA[]>>(
-    `${BRAVO_BUS_ENDPOINT}/eta/${company}/${stopId}/${route}`
+  const res = await cAxios.get<BravoBusResponse<BravoBusETA[]>>(
+    `${BRAVO_BUS_ENDPOINT}/eta/${company}/${stopId}/${route}`,
+    {
+      cache: {
+        readHeaders: false,
+        maxAge: 5000,
+      },
+    }
   );
 
   return res.data.data;
