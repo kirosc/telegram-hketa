@@ -109,8 +109,7 @@ export async function getKMBETA(
     `${KMB_ENDPOINT}/eta/${stopId}/${route}/${service_type}`,
     {
       cache: {
-        readHeaders: false,
-        maxAge: 5000,
+        ignoreCache: true,
       },
     }
   );
