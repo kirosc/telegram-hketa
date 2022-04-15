@@ -1,8 +1,10 @@
-import { getTimeDiffinMins } from '@services/common';
-import { NLB_ENDPOINT, SEPARATOR } from '@root/constant';
 import axios from 'axios';
 import _ from 'lodash';
 import { DateTime } from 'luxon';
+import moize from 'moize';
+
+import { NLB_ENDPOINT, SEPARATOR } from '@root/constant';
+import { getTimeDiffinMins } from '@services/common';
 
 type NLBResponse<T, Data extends string> = {
   [P in Data]: Array<T>;
@@ -45,13 +47,19 @@ export interface NLBETA {
 /**
  * Get the list of routes of a route
  */
-export async function listNLBRoute() {
-  const res = await axios.post<NLBResponse<NLBRoute, 'routes'>>(
-    `${NLB_ENDPOINT}/route.php?action=list`
-  );
+export const listNLBRoute = moize(
+  async () => {
+    const res = await axios.post<NLBResponse<NLBRoute, 'routes'>>(
+      `${NLB_ENDPOINT}/route.php?action=list`
+    );
 
-  return res.data.routes;
-}
+    return res.data.routes;
+  },
+  {
+    isPromise: true,
+    maxAge: 300000,
+  }
+);
 
 export async function listNLBSubRoute(route: string) {
   const routes = await listNLBRoute();
@@ -62,14 +70,20 @@ export async function listNLBSubRoute(route: string) {
 /**
  * Get the list of stops of a route
  */
-export async function listNLBRouteStop(routeId: string) {
-  const res = await axios.post<NLBResponse<NLBStop, 'stops'>>(
-    `${NLB_ENDPOINT}/stop.php?action=list`,
-    { routeId }
-  );
+export const listNLBRouteStop = moize(
+  async (routeId: string) => {
+    const res = await axios.post<NLBResponse<NLBStop, 'stops'>>(
+      `${NLB_ENDPOINT}/stop.php?action=list`,
+      { routeId }
+    );
 
-  return res.data.stops;
-}
+    return res.data.stops;
+  },
+  {
+    isPromise: true,
+    maxAge: 300000,
+  }
+);
 
 export async function getNLBETA(
   routeId: string,
