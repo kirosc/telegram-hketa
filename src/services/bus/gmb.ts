@@ -1,8 +1,10 @@
-import { BusResponse } from '@interfaces/bus';
-import { GMB_ENDPOINT, SEPARATOR } from '@root/constant';
-import axios from 'axios';
 import _ from 'lodash';
 import { DateTime } from 'luxon';
+
+import { BusResponse } from '@interfaces/bus';
+import { GMB_ENDPOINT, SEPARATOR } from '@root/constant';
+import cAxios from '@services/axios';
+
 import { BusCompanyCode } from './common';
 
 type Region = 'HKI' | 'KLN' | 'NT';
@@ -89,13 +91,17 @@ interface GMBETAStopSequenceData {
  * Get the list of routes by region
  */
 export async function listGMBRoutes() {
-  const res = await axios.get<GMBResponse<GMBRoutes>>(`${GMB_ENDPOINT}/route`);
+  const res = await cAxios.get<GMBResponse<GMBRoutes>>(
+    `${GMB_ENDPOINT}/route`,
+    { cache: { readHeaders: false } }
+  );
   return res.data.data.routes;
 }
 
 export async function retrieveGMBRoute(region: Region, route: string) {
-  const res = await axios.get<GMBResponse<GMBRoute[]>>(
-    `${GMB_ENDPOINT}/route/${region}/${route}`
+  const res = await cAxios.get<GMBResponse<GMBRoute[]>>(
+    `${GMB_ENDPOINT}/route/${region}/${route}`,
+    { cache: { readHeaders: false } }
   );
   return res.data.data;
 }
@@ -104,8 +110,9 @@ export async function listGMBRouteStops(
   routeId: number | string,
   routeSeq: number | string
 ) {
-  const res = await axios.get<GMBResponse<{ route_stops: GMBRouteStop[] }>>(
-    `${GMB_ENDPOINT}/route-stop/${routeId}/${routeSeq}`
+  const res = await cAxios.get<GMBResponse<{ route_stops: GMBRouteStop[] }>>(
+    `${GMB_ENDPOINT}/route-stop/${routeId}/${routeSeq}`,
+    { cache: { readHeaders: false } }
   );
   return res.data.data.route_stops;
 }
@@ -115,7 +122,7 @@ export async function retrieveGMBRouteStopETAs(
   routeSeq: number | string,
   stopSeq: number | string
 ) {
-  const res = await axios.get<GMBResponse<GMBETAStopSequenceData>>(
+  const res = await cAxios.get<GMBResponse<GMBETAStopSequenceData>>(
     `${GMB_ENDPOINT}/eta/route-stop/${routeId}/${routeSeq}/${stopSeq}`
   );
   return res.data.data;
@@ -130,7 +137,7 @@ export async function listGMBRouteStopETAs(
   routeId: number | string,
   stopId: number | string
 ) {
-  const res = await axios.get<GMBResponse<GMBETAStopIdData[]>>(
+  const res = await cAxios.get<GMBResponse<GMBETAStopIdData[]>>(
     `${GMB_ENDPOINT}/eta/route-stop/${routeId}/${stopId}`
   );
   return res.data.data;
