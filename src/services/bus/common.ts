@@ -1,9 +1,11 @@
-import { BusETA } from '@interfaces/bus';
-import { getTimeDiffinMins } from '@services/common';
-import { readJSON } from '@services/io';
-import { SEPARATOR } from '@root/constant';
 import _ from 'lodash';
 import { DateTime } from 'luxon';
+import moize from 'moize';
+
+import { BusETA } from '@interfaces/bus';
+import { SEPARATOR } from '@root/constant';
+import { getTimeDiffinMins } from '@services/common';
+import { readJSON } from '@services/io';
 
 export type BusCompanyCode =
   | 'CTB'
@@ -21,13 +23,17 @@ export const BOUND_MAPPING = {
   O: 'outbound',
 };
 
+const getCompanyRoutes = moize.maxAge(1000 * 60 * 60 * 12)(() =>
+  readJSON('routes')
+);
+
 /**
  *
  * @param route route number
  * @returns list of matched company code
  */
 export function getRouteCompany(route: string): BusCompanyCode[] {
-  const routes: Route = readJSON('routes');
+  const routes: Route = getCompanyRoutes();
   const matched = _.pickBy(routes, (r) => r.includes(route));
   return _.keys(matched) as BusCompanyCode[];
 }
