@@ -1,8 +1,10 @@
+import { DateTime } from 'luxon';
+
 import { MTRRoute, MTRSchedule, MTRStation } from '@interfaces/mtr';
 import { MTR_ENDPOINT, SEPARATOR } from '@root/constant';
-import axios from 'axios';
-import { DateTime } from 'luxon';
 import { readJSON } from '@services/io';
+
+import cAxios from './axios';
 
 interface Line {
   tc: string;
@@ -31,7 +33,7 @@ export async function getSchedule(
   sta: string,
   lang: string = 'tc'
 ) {
-  const res = await axios.get<MTRSchedule>(`${MTR_ENDPOINT}/getSchedule.php`, {
+  const res = await cAxios.get<MTRSchedule>(`${MTR_ENDPOINT}/getSchedule.php`, {
     params: {
       line,
       sta,
